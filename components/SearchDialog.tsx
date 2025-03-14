@@ -15,7 +15,7 @@ interface SearchResult {
   title: string;
   subtitle?: string;
   image?: string;
-  route: string;
+  route: `/events/${string}` | `/user/${string}` | `/topics/${string}`;
 }
 
 const TRENDING_SEARCHES = [
@@ -81,7 +81,7 @@ export default function SearchDialog({ visible, onClose }: Props) {
   }, [query]);
 
   const handleResultPress = (result: SearchResult) => {
-    router.push(result.route);
+    router.push(result.route as any);
     onClose();
   };
 
@@ -89,101 +89,116 @@ export default function SearchDialog({ visible, onClose }: Props) {
 
   return (
     <Animated.View 
-      style={styles.container}
-      entering={SlideInDown}
-      exiting={SlideOutDown}
+      entering={FadeIn.duration(200)}
+      exiting={FadeOut.duration(200)}
+      style={styles.overlay}
     >
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={styles.searchBar}>
-            <Search size={20} color="#666" />
-            <TextInput
-              style={styles.input}
-              placeholder="Search events, people, topics..."
-              value={query}
-              onChangeText={setQuery}
-              autoFocus
-            />
-            {query ? (
-              <TouchableOpacity onPress={() => setQuery('')}>
-                <X size={20} color="#666" />
-              </TouchableOpacity>
-            ) : null}
+      <Animated.View 
+        style={styles.container}
+        entering={SlideInDown.duration(300)}
+        exiting={SlideOutDown.duration(300)}
+      >
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.searchBar}>
+              <Search size={20} color="#666" />
+              <TextInput
+                style={styles.input}
+                placeholder="Search events, people, topics..."
+                value={query}
+                onChangeText={setQuery}
+                autoFocus
+              />
+              {query ? (
+                <TouchableOpacity onPress={() => setQuery('')}>
+                  <X size={20} color="#666" />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Text style={styles.closeText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
 
-        {!query ? (
-          <View style={styles.suggestions}>
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <TrendingUp size={20} color="#666" />
-                <Text style={styles.sectionTitle}>Trending Searches</Text>
+          {!query ? (
+            <View style={styles.suggestions}>
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <TrendingUp size={20} color="#666" />
+                  <Text style={styles.sectionTitle}>Trending Searches</Text>
+                </View>
+                <View style={styles.tags}>
+                  {TRENDING_SEARCHES.map((term) => (
+                    <TouchableOpacity 
+                      key={term} 
+                      style={styles.tag}
+                      onPress={() => setQuery(term)}
+                    >
+                      <Text style={styles.tagText}>{term}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-              <View style={styles.tags}>
-                {TRENDING_SEARCHES.map((term) => (
+
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Clock size={20} color="#666" />
+                  <Text style={styles.sectionTitle}>Recent Searches</Text>
+                </View>
+                {RECENT_SEARCHES.map((term) => (
                   <TouchableOpacity 
-                    key={term} 
-                    style={styles.tag}
+                    key={term}
+                    style={styles.recentItem}
                     onPress={() => setQuery(term)}
                   >
-                    <Text style={styles.tagText}>{term}</Text>
+                    <Clock size={16} color="#666" />
+                    <Text style={styles.recentText}>{term}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </View>
-
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Clock size={20} color="#666" />
-                <Text style={styles.sectionTitle}>Recent Searches</Text>
-              </View>
-              {RECENT_SEARCHES.map((term) => (
+          ) : (
+            <FlatList
+              data={results}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
                 <TouchableOpacity 
-                  key={term}
-                  style={styles.recentItem}
-                  onPress={() => setQuery(term)}
+                  style={styles.resultItem}
+                  onPress={() => handleResultPress(item)}
                 >
-                  <Clock size={16} color="#666" />
-                  <Text style={styles.recentText}>{term}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        ) : (
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity 
-                style={styles.resultItem}
-                onPress={() => handleResultPress(item)}
-              >
-                {item.image && (
-                  <Image source={{ uri: item.image }} style={styles.resultImage} />
-                )}
-                <View style={styles.resultContent}>
-                  <Text style={styles.resultTitle}>{item.title}</Text>
-                  {item.subtitle && (
-                    <Text style={styles.resultSubtitle}>{item.subtitle}</Text>
+                  {item.image && (
+                    <Image source={{ uri: item.image }} style={styles.resultImage} />
                   )}
-                </View>
-                {item.type === 'topic' && (
-                  <Star size={16} color="#FFD700" fill="#FFD700" />
-                )}
-              </TouchableOpacity>
-            )}
-            contentContainerStyle={styles.resultsList}
-          />
-        )}
-      </View>
+                  <View style={styles.resultContent}>
+                    <Text style={styles.resultTitle}>{item.title}</Text>
+                    {item.subtitle && (
+                      <Text style={styles.resultSubtitle}>{item.subtitle}</Text>
+                    )}
+                  </View>
+                  {item.type === 'topic' && (
+                    <Star size={16} color="#FFD700" fill="#FFD700" />
+                  )}
+                </TouchableOpacity>
+              )}
+              contentContainerStyle={styles.resultsList}
+            />
+          )}
+        </View>
+      </Animated.View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 1000,
+  },
   container: {
     position: 'absolute',
     top: 0,
@@ -194,7 +209,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingTop: 44,
+    paddingTop: 64,
   },
   header: {
     flexDirection: 'row',
