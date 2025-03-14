@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { Mail, Briefcase, MapPin, Share2, MessageCircle, ChevronLeft, User, Calendar, Clock, Users, Link, Phone } from 'lucide-react-native';
+import { Mail, Briefcase, MapPin, Share2, MessageCircle, ChevronLeft, User, Calendar, Clock, Users, Link, Phone, Heart } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AttendeeProfile() {
@@ -82,34 +82,33 @@ export default function AttendeeProfile() {
   };
 
   const handleBack = () => {
-    if (eventId) {
-      // Navigate back to the event landing page
-      router.push({
-        pathname: "/event-landing/[id]",
-        params: { id: eventId as string }
-      });
-    } else {
-      // Regular back navigation if no eventId
-      router.back();
-    }
+    router.back();
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       <Stack.Screen 
         options={{
           headerShown: false
         }}
       />
       
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top, height: 56 + insets.top }]}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color="#007AFF" />
           <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.favoriteButton} onPress={handleConnect}>
+          <Heart 
+            size={24} 
+            color="#FF3B30"
+            fill={isConnected ? "#FF3B30" : "none"}
+          />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollContainer}>
+      <ScrollView style={[styles.scrollContainer, { marginTop: 56 + insets.top }]}>
         <View style={styles.profileHeader}>
           <Image 
             source={{ uri: attendee.image }}
@@ -269,7 +268,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
@@ -289,9 +288,11 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     marginLeft: 4,
   },
+  favoriteButton: {
+    padding: 8,
+  },
   scrollContainer: {
     flex: 1,
-    marginTop: 56,
   },
   profileHeader: {
     alignItems: 'center',

@@ -1,42 +1,71 @@
 import React, { useState } from 'react';
 import { Tabs } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Platform } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Chrome as Home, User, Telescope, Newspaper, Search, Menu, TicketCheck } from 'lucide-react-native';
 import SearchDialog from '@/components/SearchDialog';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DrawerNavigationProp } from '@react-navigation/drawer';
+import { usePathname } from 'expo-router';
+
+type DrawerParamList = {
+  '(drawer)': undefined;
+};
 
 export default function AppLayout() {
-  const navigation = useNavigation();
   const [searchVisible, setSearchVisible] = useState(false);
+  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
+  const pathname = usePathname();
+  const insets = useSafeAreaInsets();
+
+  const isMainLandingPage = pathname === '/(app)' || pathname === '/(app)/index';
 
   return (
     <>
       <Tabs
         screenOptions={{
-          headerShown: true,
+          headerStyle: {
+            height: 56 + insets.top,
+          },
+          headerTitleStyle: {
+            fontSize: 17,
+            fontFamily: 'Inter-SemiBold',
+          },
           headerLeft: () => (
-            <TouchableOpacity 
-              onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
-              style={{ marginLeft: 16 }}
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => {
+                const parent = navigation.getParent();
+                if (parent) {
+                  parent.dispatch(DrawerActions.toggleDrawer());
+                }
+              }}
             >
               <Menu size={24} color="#007AFF" />
             </TouchableOpacity>
           ),
           headerRight: () => (
-            <TouchableOpacity 
+            <TouchableOpacity
+              style={styles.headerButton}
               onPress={() => setSearchVisible(true)}
-              style={{ marginRight: 16 }}
             >
               <Search size={24} color="#007AFF" />
             </TouchableOpacity>
           ),
           tabBarStyle: {
+            height: 56 + insets.bottom,
+            paddingTop: 8,
+            paddingBottom: 8 + insets.bottom,
             backgroundColor: '#fff',
             borderTopWidth: 1,
             borderTopColor: '#eee',
           },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontFamily: 'Inter-Medium',
+          },
           tabBarActiveTintColor: '#007AFF',
-          tabBarInactiveTintColor: '#999',
+          tabBarInactiveTintColor: '#666',
         }}
       >
         <Tabs.Screen
@@ -46,7 +75,6 @@ export default function AppLayout() {
             tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
           }}
         />
-       
         <Tabs.Screen
           name="explore"
           options={{
@@ -63,7 +91,7 @@ export default function AppLayout() {
             tabBarIcon: ({ color, size }) => <TicketCheck size={size} color={color} />,
           }}
         />
-         <Tabs.Screen
+        <Tabs.Screen
           name="feed"
           options={{
             title: 'Feed',
@@ -84,3 +112,12 @@ export default function AppLayout() {
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  headerButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

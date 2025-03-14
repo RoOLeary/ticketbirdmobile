@@ -19,7 +19,7 @@ const DUMMY_TICKET = {
   },
   ticketType: 'VIP Pass',
   ticketNumber: 'TKT-2024-001',
-  price: '$299',
+  price: '€1299',
   perks: [
     'Priority seating',
     'Access to VIP lounge',

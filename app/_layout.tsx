@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { Calendar, Chrome as Home, Heart, LogOut, CircleHelp as HelpCircle } from 'lucide-react-native';
 import { AuthProvider } from '@/lib/auth';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
   const router = useRouter();
@@ -135,28 +136,14 @@ const DrawerNavigator = () => (
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen 
-          name="(auth)" 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="(drawer)" 
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen 
-          name="(event)" 
-          options={{ 
-            headerShown: false,
-            animation: 'none',
-          }} 
-        />
-        <Stack.Screen 
-          name="+not-found" 
-          options={{ headerShown: false }} 
-        />
-      </Stack>
-      <StatusBar style="auto" />
+      <SafeAreaProvider>
+        <StatusBar style="dark" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(drawer)" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(stack)" />
+        </Stack>
+      </SafeAreaProvider>
     </AuthProvider>
   );
 }

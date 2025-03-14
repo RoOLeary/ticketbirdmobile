@@ -51,7 +51,7 @@ const EVENTS: Record<string, EventDetails> = {
     description: 'A comprehensive workshop on building and maintaining design systems. Learn about component libraries, documentation, and collaboration between designers and developers.',
     attendees: 150,
     category: 'Design',
-    price: '$299',
+    price: '€1299',
     organizer: {
       name: 'DesignOps Pro',
       image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=100&h=100&fit=crop'
