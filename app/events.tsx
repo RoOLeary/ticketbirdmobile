@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 import { Calendar, MapPin, Clock, Users, Star, ChevronRight } from 'lucide-react-native';
 import { useFavoritesStore } from '@/stores/favoritesStore';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Event {
   id: string;
@@ -108,15 +109,36 @@ const EventCard = ({ event }: { event: Event }) => {
 };
 
 export default function Events() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>My Events</Text>
+    <View style={styles.container}>
+      <Stack.Screen 
+        options={{
+          headerShown: true,
+          headerTitle: "My Events",
+          headerTitleStyle: {
+            fontFamily: 'Inter-SemiBold',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#fff',
+          },
+          headerShadowVisible: false,
+        }}
+      />
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom }
+        ]}
+      >
         {EVENTS.map((event) => (
           <EventCard key={event.id} event={event} />
         ))}
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -125,14 +147,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
+  scrollView: {
+    flex: 1,
+  },
   content: {
     padding: 16,
-  },
-  title: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 24,
-    color: '#1a1a1a',
-    marginBottom: 20,
   },
   eventCard: {
     backgroundColor: '#fff',

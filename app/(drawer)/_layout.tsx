@@ -2,7 +2,7 @@ import { Drawer } from 'expo-router/drawer';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
-import { Calendar, Chrome as Home, Heart, LogOut, CircleHelp as HelpCircle } from 'lucide-react-native';
+import { Calendar, Home, Heart, LogOut, CircleHelp as HelpCircle } from 'lucide-react-native';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { DrawerActions } from '@react-navigation/native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';

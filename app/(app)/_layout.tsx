@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Tabs } from 'expo-router';
 import { TouchableOpacity, StyleSheet, View, Platform } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
-import { Chrome as Home, User, Telescope, Newspaper, Search, Menu, TicketCheck } from 'lucide-react-native';
+import { Home, User, Telescope, Newspaper, Search, Menu, TicketCheck } from 'lucide-react-native';
 import SearchDialog from '@/components/SearchDialog';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 

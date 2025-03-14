@@ -1,22 +1,37 @@
 import React from 'react';
 import { Stack } from 'expo-router';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import { Drawer } from 'expo-router/drawer';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
-import { Calendar, Chrome as Home, Heart, LogOut, CircleHelp as HelpCircle } from 'lucide-react-native';
+import { Home, Calendar, Ticket, Heart, User as Profile, LogOut, CircleHelp as HelpCircle } from 'lucide-react-native';
 import { AuthProvider } from '@/lib/auth';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+type AppRoute = 
+  | '/'
+  | '/events'
+  | '/tickets'
+  | '/settings'
+  | '/support'
+  | '/login';
+
 const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
 
   const handleLogout = async () => {
     await logout();
+    navigation.closeDrawer();
     router.replace('/login');
+  };
+
+  const navigateAndClose = (path: string) => {
+    navigation.closeDrawer();
+    router.push(path as any);
   };
 
   return (
@@ -27,12 +42,15 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
           style={styles.logo}
         />
         <Text style={styles.logoText}>Ticketbird</Text>
+        {user?.displayName && (
+          <Text style={styles.userEmail}>{user.displayName}</Text>
+        )}
       </View>
       
       <View style={styles.drawerContent}>
         <TouchableOpacity 
           style={styles.drawerItem} 
-          onPress={() => navigation.navigate('(app)')}
+          onPress={() => navigateAndClose('/')}
         >
           <Home size={24} color="#666" />
           <Text style={styles.drawerItemText}>Home</Text>
@@ -40,7 +58,7 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
 
         <TouchableOpacity 
           style={styles.drawerItem} 
-          onPress={() => navigation.navigate('events')}
+          onPress={() => navigateAndClose('/events')}
         >
           <Calendar size={24} color="#666" />
           <Text style={styles.drawerItemText}>My Events</Text>
@@ -48,19 +66,33 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
 
         <TouchableOpacity 
           style={styles.drawerItem} 
-          onPress={() => navigation.navigate('favorites')}
+          onPress={() => navigateAndClose('/tickets')}
+        >
+          <Ticket size={24} color="#666" />
+          <Text style={styles.drawerItemText}>My Tickets</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.drawerItem} 
+          onPress={() => navigateAndClose('/favorites')}
         >
           <Heart size={24} color="#666" />
           <Text style={styles.drawerItemText}>My Favorites</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.drawerItem} 
+          onPress={() => navigateAndClose('/profile')}
+        >
+          <Profile size={24} color="#666" />
+          <Text style={styles.drawerItemText}>Profile</Text>
         </TouchableOpacity>
       </View>
       
       <View style={styles.drawerFooter}>
         <TouchableOpacity 
           style={styles.footerButton}
-          onPress={() => {
-            navigation.closeDrawer();
-          }}
+          onPress={() => navigateAndClose('/support')}
         >
           <HelpCircle size={20} color="#666" />
           <Text style={styles.footerButtonText}>Support</Text>
@@ -68,10 +100,7 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
         
         <TouchableOpacity 
           style={styles.footerButton}
-          onPress={() => {
-            handleLogout();
-            navigation.closeDrawer();
-          }}
+          onPress={handleLogout}
         >
           <LogOut size={20} color="#FF3B30" />
           <Text style={[styles.footerButtonText, styles.logoutText]}>
@@ -83,98 +112,53 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
   );
 };
 
-const DrawerNavigator = () => (
-  <Drawer
-    screenOptions={{ 
-      headerShown: true,
-      headerTitle: '',
-      drawerStyle: {
-        backgroundColor: '#fff',
-      },
-    }}
-    drawerContent={(props) => <CustomDrawerContent {...props} />}
-  >
-    <Drawer.Screen 
-      name="(app)" 
-      options={{ 
-        headerShown: false,
-        drawerLabel: 'Home',
-        swipeEnabled: true,
-      }}
-    />
-    <Drawer.Screen 
-      name="events" 
-      options={{ 
-        drawerLabel: 'My Events',
-        drawerIcon: ({ color, size }) => <Calendar size={size} color={color} />,
-      }}
-    />
-    <Drawer.Screen 
-      name="favorites" 
-      options={{ 
-        drawerLabel: 'Favorites',
-        drawerIcon: ({ color, size }) => <Heart size={size} color={color} />,
-      }}
-    />
-    <Drawer.Screen 
-      name="events/[id]" 
-      options={{
-        headerShown: true,
-        headerTitle: 'Event Details',
-        swipeEnabled: false 
-      }}
-    />
-    <Drawer.Screen 
-      name="user/[id]" 
-      options={{ 
-        headerShown: true,
-        headerTitle: 'Profile',
-        swipeEnabled: false 
-      }}
-    />
-  </Drawer>
-);
-
 export default function RootLayout() {
   return (
-    <>
-      <StatusBar style="dark" />
-      <Drawer
-        screenOptions={{
-          headerShown: false,
-          drawerType: 'front',
-        }}
-      >
-        <Drawer.Screen 
-          name="(app)"
-          options={{
+    <AuthProvider>
+      <SafeAreaProvider>
+        <StatusBar style="dark" />
+        <Drawer
+          screenOptions={{
             headerShown: false,
-            swipeEnabled: true,
+            drawerType: 'front',
+            drawerStyle: {
+              backgroundColor: '#fff',
+              width: 300,
+            }
           }}
-        />
-        <Drawer.Screen 
-          name="(auth)" 
-          options={{
-            headerShown: false,
-            swipeEnabled: false,
-          }}
-        />
-      </Drawer>
-    </>
+          drawerContent={(props) => <CustomDrawerContent {...props} />}
+        >
+          <Drawer.Screen 
+            name="(app)"
+            options={{
+              headerShown: false,
+              swipeEnabled: true,
+            }}
+          />
+          <Drawer.Screen 
+            name="(auth)" 
+            options={{
+              headerShown: false,
+              swipeEnabled: false,
+            }}
+          />
+        </Drawer>
+      </SafeAreaProvider>
+    </AuthProvider>
   );
 }
 
 const styles = StyleSheet.create({
   drawerContainer: {
     flex: 1,
+    backgroundColor: '#fff',
   },
   logoContainer: {
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 16,
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     alignItems: 'center',
+    marginTop: Platform.OS === 'ios' ? 47 : 0,
   },
   logo: {
     width: 80,
@@ -184,30 +168,38 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'Inter-Bold',
     color: '#1a1a1a',
+  },
+  userEmail: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+    fontFamily: 'Inter-Regular',
   },
   drawerContent: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 16,
   },
   drawerItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    marginBottom: 8,
+    marginHorizontal: 8,
+    borderRadius: 8,
   },
   drawerItemText: {
     marginLeft: 16,
     fontSize: 16,
     color: '#333',
+    fontFamily: 'Inter-Regular',
   },
   drawerFooter: {
     borderTopWidth: 1,
     borderTopColor: '#eee',
     paddingVertical: 16,
-    paddingHorizontal: 8,
-    gap: 8,
+    paddingHorizontal: 16,
+    gap: 12,
   },
   footerButton: {
     flexDirection: 'row',
@@ -219,6 +211,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 14,
     color: '#666',
+    fontFamily: 'Inter-Regular',
   },
   logoutText: {
     color: '#FF3B30',
