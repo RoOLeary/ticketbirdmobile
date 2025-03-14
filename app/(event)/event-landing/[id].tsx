@@ -521,6 +521,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#333',
     lineHeight: 24,
+    padding: 8,
   },
   actions: {
     flexDirection: 'row',
