@@ -5,6 +5,7 @@ import { useAuthStore, type AuthStore } from '@/stores/authStore';
 import { Camera, Bell, Globe, Lock, Moon, Share2, CreditCard, Plus, Mail, Github, Instagram, Linkedin, AtSign, ChevronLeft } from 'lucide-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TicketbirdLogo } from '../components/TicketbirdLogo';
 
 interface PaymentMethod {
   id: string;
@@ -248,25 +249,21 @@ export default function Profile() {
     <View style={[styles.container]}>
       <Stack.Screen 
         options={{
-          headerShown: false
+          headerShown: true,
+          headerTitle: "Profile",
+          headerShadowVisible: false,
+          headerStyle: {
+            backgroundColor: '#fff'
+          },
+          headerTitleStyle: {
+            fontSize: 17,
+            fontFamily: 'Inter-SemiBold',
+          }
         }}
       />
       
-      <View style={[styles.header, { paddingTop: insets.top, height: 56 + insets.top }]}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <ChevronLeft size={24} color="#007AFF" />
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
-        
-        {hasChanges && (
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Save</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
       <ScrollView 
-        style={[styles.scrollContainer, { marginTop: 56 + insets.top }]} 
+        style={styles.scrollContainer}
         contentContainerStyle={{ paddingBottom: insets.bottom }}
       >
         <Animated.View entering={FadeIn.duration(400)}>
@@ -474,62 +471,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 17,
-    fontFamily: 'Inter-Medium',
-    color: '#007AFF',
-    marginLeft: 4,
-  },
-  saveButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#E5E5EA',
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  saveButtonText: {
-    fontSize: 17,
-    fontFamily: 'Inter-SemiBold',
-    color: '#fff',
-    textAlign: 'center',
-  },
-  saveButtonTextDisabled: {
-    color: '#8E8E93',
-  },
   scrollContainer: {
     flex: 1,
+    backgroundColor: '#fff',
+  },
+  content: {
+    padding: 16,
   },
   profileHeader: {
     alignItems: 'center',
@@ -786,5 +733,34 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     marginBottom: 24,
+  },
+  saveButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#E5E5EA',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  saveButtonText: {
+    fontSize: 17,
+    fontFamily: 'Inter-SemiBold',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  saveButtonTextDisabled: {
+    color: '#8E8E93',
   },
 });

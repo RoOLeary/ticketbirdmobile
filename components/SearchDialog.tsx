@@ -89,15 +89,11 @@ export default function SearchDialog({ visible, onClose }: Props) {
 
   return (
     <Animated.View 
-      entering={FadeIn.duration(200)}
-      exiting={FadeOut.duration(200)}
-      style={styles.overlay}
+      style={styles.container}
+      entering={SlideInDown}
+      exiting={SlideOutDown}
     >
-      <Animated.View 
-        entering={SlideInDown.duration(300)}
-        exiting={SlideOutDown.duration(300)}
-        style={styles.container}
-      >
+      <View style={styles.content}>
         <View style={styles.header}>
           <View style={styles.searchBar}>
             <Search size={20} color="#666" />
@@ -182,21 +178,12 @@ export default function SearchDialog({ visible, onClose }: Props) {
             contentContainerStyle={styles.resultsList}
           />
         )}
-      </Animated.View>
+      </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 1000,
-  },
   container: {
     position: 'absolute',
     top: 0,
@@ -204,12 +191,10 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#fff',
+  },
+  content: {
+    flex: 1,
     paddingTop: 44,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
   },
   header: {
     flexDirection: 'row',

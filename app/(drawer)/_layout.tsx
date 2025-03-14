@@ -6,6 +6,7 @@ import { Calendar, Home, Heart, LogOut, CircleHelp as HelpCircle } from 'lucide-
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { DrawerActions } from '@react-navigation/native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { TicketbirdLogo } from '../components/TicketbirdLogo';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -39,8 +40,14 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
           source={{ uri: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=200&h=200&fit=crop' }}
           style={styles.logo}
         />
-        <Text style={styles.logoText}>Ticketbird</Text>
-        <Text style={styles.userEmail}>by busylittlepixels</Text>
+        <View style={styles.logoTextContainer}>
+          <View style={styles.logoWithText}>
+            <TicketbirdLogo size={24} color="#007AFF" />
+            <Text style={styles.logoText}>Ticketbird</Text>
+          </View>
+          <Text style={styles.userEmail}>by busylittlepixels</Text>
+        </View>
+
         {/* {user?.displayName && (
           <Text style={styles.userEmail}>{user.displayName}</Text>
         )} */}
@@ -150,22 +157,32 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
     alignItems: 'center',
     marginTop: Platform.OS === 'ios' ? 20 : 0,
+    paddingBottom: 20,
   },
   logo: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  logoTextContainer: {
+    alignItems: 'center',
+  },
+  logoWithText: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   logoText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     color: '#333',
+    marginLeft: 8,
   },
   userEmail: {
     fontSize: 14,
     color: '#666',
-    marginTop: 4,
+    marginTop: 2,
   },
   drawerContent: {
     flex: 1,

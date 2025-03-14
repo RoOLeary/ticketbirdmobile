@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import { Tabs } from 'expo-router';
-import { TouchableOpacity, StyleSheet, View, Platform } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Platform, Text } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Home, User, Telescope, Newspaper, Search, Menu, TicketCheck } from 'lucide-react-native';
 import SearchDialog from '@/components/SearchDialog';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const HeaderTitle = () => (
+  <View style={styles.headerTitle}>
+    <Text style={styles.headerText}>Ticketbird</Text>
+  </View>
+);
 
 export default function AppLayout() {
   const [searchVisible, setSearchVisible] = useState(false);
@@ -14,10 +20,11 @@ export default function AppLayout() {
   return (
     <>
       <Tabs
-        screenOptions={{
+        screenOptions={({ route }) => ({
           headerStyle: {
             height: 56 + insets.top,
           },
+          headerTitle: route.name === 'index' ? () => <HeaderTitle /> : undefined,
           headerTitleStyle: {
             fontSize: 17,
             fontFamily: 'Inter-SemiBold',
@@ -52,12 +59,13 @@ export default function AppLayout() {
           },
           tabBarActiveTintColor: '#007AFF',
           tabBarInactiveTintColor: '#666',
-        }}
+        })}
       >
         <Tabs.Screen
           name="index"
           options={{
             title: 'Home',
+            headerTitle: () => <HeaderTitle />,
             tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
           }}
         />
@@ -105,5 +113,14 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#333',
   },
 });
