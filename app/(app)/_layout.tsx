@@ -5,20 +5,11 @@ import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Chrome as Home, User, Telescope, Newspaper, Search, Menu, TicketCheck } from 'lucide-react-native';
 import SearchDialog from '@/components/SearchDialog';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DrawerNavigationProp } from '@react-navigation/drawer';
-import { usePathname } from 'expo-router';
-
-type DrawerParamList = {
-  '(drawer)': undefined;
-};
 
 export default function AppLayout() {
   const [searchVisible, setSearchVisible] = useState(false);
-  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
-  const pathname = usePathname();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-
-  const isMainLandingPage = pathname === '/(app)' || pathname === '/(app)/index';
 
   return (
     <>
@@ -34,12 +25,7 @@ export default function AppLayout() {
           headerLeft: () => (
             <TouchableOpacity
               style={styles.headerButton}
-              onPress={() => {
-                const parent = navigation.getParent();
-                if (parent) {
-                  parent.dispatch(DrawerActions.toggleDrawer());
-                }
-              }}
+              onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
             >
               <Menu size={24} color="#007AFF" />
             </TouchableOpacity>

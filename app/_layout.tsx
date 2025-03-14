@@ -1,3 +1,4 @@
+import React from 'react';
 import { Stack } from 'expo-router';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Drawer } from 'expo-router/drawer';
@@ -98,6 +99,7 @@ const DrawerNavigator = () => (
       options={{ 
         headerShown: false,
         drawerLabel: 'Home',
+        swipeEnabled: true,
       }}
     />
     <Drawer.Screen 
@@ -135,16 +137,30 @@ const DrawerNavigator = () => (
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <SafeAreaProvider>
-        <StatusBar style="dark" />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(drawer)" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(stack)" />
-        </Stack>
-      </SafeAreaProvider>
-    </AuthProvider>
+    <>
+      <StatusBar style="dark" />
+      <Drawer
+        screenOptions={{
+          headerShown: false,
+          drawerType: 'front',
+        }}
+      >
+        <Drawer.Screen 
+          name="(app)"
+          options={{
+            headerShown: false,
+            swipeEnabled: true,
+          }}
+        />
+        <Drawer.Screen 
+          name="(auth)" 
+          options={{
+            headerShown: false,
+            swipeEnabled: false,
+          }}
+        />
+      </Drawer>
+    </>
   );
 }
 
