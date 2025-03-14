@@ -31,7 +31,7 @@ const EVENTS: Record<string, EventDetails> = {
     time: '9:00 AM - 6:00 PM',
     location: 'Innovation Center, Silicon Valley',
     image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=400&fit=crop',
-    description: 'Join us for the biggest tech conference of 2025! Featuring keynote speakers from leading tech companies, hands-on workshops, and networking opportunities. Topics include AI, Web3, Cloud Computing, and more.',
+    description: 'Join us for the biggest tech conference of 2025! Featuring keynote speakers from leading tech companies, hands-on workshops, and networking opportunities. \n\nTopics include AI, Web3, Cloud Computing, and more.',
     attendees: 1200,
     category: 'Technology',
     price: '$499',

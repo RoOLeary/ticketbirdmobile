@@ -1,11 +1,8 @@
-import { Stack } from 'expo-router';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Drawer } from 'expo-router/drawer';
-import { StatusBar } from 'expo-status-bar';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
 import { Calendar, Chrome as Home, Heart, LogOut, CircleHelp as HelpCircle } from 'lucide-react-native';
-import { AuthProvider } from '@/lib/auth';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 
 const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
@@ -81,83 +78,56 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
   );
 };
 
-const DrawerNavigator = () => (
-  <Drawer
-    screenOptions={{ 
-      headerShown: true,
-      headerTitle: '',
-      drawerStyle: {
-        backgroundColor: '#fff',
-      },
-    }}
-    drawerContent={(props) => <CustomDrawerContent {...props} />}
-  >
-    <Drawer.Screen 
-      name="(app)" 
-      options={{ 
-        headerShown: false,
-        drawerLabel: 'Home',
-      }}
-    />
-    <Drawer.Screen 
-      name="events" 
-      options={{ 
-        drawerLabel: 'My Events',
-        drawerIcon: ({ color, size }) => <Calendar size={size} color={color} />,
-      }}
-    />
-    <Drawer.Screen 
-      name="favorites" 
-      options={{ 
-        drawerLabel: 'Favorites',
-        drawerIcon: ({ color, size }) => <Heart size={size} color={color} />,
-      }}
-    />
-    <Drawer.Screen 
-      name="events/[id]" 
-      options={{
-        headerShown: true,
-        headerTitle: 'Event Details',
-        swipeEnabled: false 
-      }}
-    />
-    <Drawer.Screen 
-      name="user/[id]" 
-      options={{ 
-        headerShown: true,
-        headerTitle: 'Profile',
-        swipeEnabled: false 
-      }}
-    />
-  </Drawer>
-);
-
-export default function RootLayout() {
+export default function DrawerLayout() {
   return (
-    <AuthProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen 
-          name="(auth)" 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="(drawer)" 
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen 
-          name="(event)" 
-          options={{ 
-            headerShown: false,
-            animation: 'none',
-          }} 
-        />
-        <Stack.Screen 
-          name="+not-found" 
-          options={{ headerShown: false }} 
-        />
-      </Stack>
-      <StatusBar style="auto" />
-    </AuthProvider>
+    <Drawer
+      screenOptions={{ 
+        headerShown: true,
+        headerTitle: '',
+        drawerStyle: {
+          backgroundColor: '#fff',
+        },
+      }}
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
+    >
+      <Drawer.Screen 
+        name="(app)" 
+        options={{ 
+          headerShown: false,
+          drawerLabel: 'Home',
+        }}
+      />
+      <Drawer.Screen 
+        name="events" 
+        options={{ 
+          drawerLabel: 'My Events',
+          drawerIcon: ({ color, size }) => <Calendar size={size} color={color} />,
+        }}
+      />
+      <Drawer.Screen 
+        name="favorites" 
+        options={{ 
+          drawerLabel: 'Favorites',
+          drawerIcon: ({ color, size }) => <Heart size={size} color={color} />,
+        }}
+      />
+      <Drawer.Screen 
+        name="events/[id]" 
+        options={{
+          headerShown: true,
+          headerTitle: 'Event Details',
+          swipeEnabled: false 
+        }}
+      />
+      <Drawer.Screen 
+        name="user/[id]" 
+        options={{ 
+          headerShown: true,
+          headerTitle: 'Profile',
+          swipeEnabled: false 
+        }}
+      />
+    </Drawer>
   );
 }
 
@@ -220,4 +190,4 @@ const styles = StyleSheet.create({
   logoutText: {
     color: '#FF3B30',
   },
-});
+}); 

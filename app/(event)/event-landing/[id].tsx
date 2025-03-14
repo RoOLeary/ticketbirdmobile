@@ -146,22 +146,28 @@ const SearchModal = ({
   onClose,
   filteredSpeakers,
   filteredAttendees,
+  filteredCompanies,
   renderSpeaker,
   renderAttendee,
+  renderCompany,
   navigateToSpeakerProfile,
-  navigateToAttendeeProfile
+  navigateToAttendeeProfile,
+  navigateToCompanyProfile
 }: { 
   visible: boolean, 
-  searchType: 'speakers' | 'attendees', 
+  searchType: 'speakers' | 'attendees' | 'companies', 
   searchQuery: string, 
   setSearchQuery: (query: string) => void, 
   onClose: () => void,
   filteredSpeakers: any[],
   filteredAttendees: any[],
+  filteredCompanies: any[],
   renderSpeaker: (speaker: any) => React.ReactNode,
   renderAttendee: (attendee: any) => React.ReactNode,
+  renderCompany: (company: any) => React.ReactNode,
   navigateToSpeakerProfile: (speaker: any) => void,
-  navigateToAttendeeProfile: (attendee: any) => void
+  navigateToAttendeeProfile: (attendee: any) => void,
+  navigateToCompanyProfile: (company: any) => void
 }) => {
   const insets = useSafeAreaInsets();
   
@@ -178,7 +184,7 @@ const SearchModal = ({
             <X size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.searchModalTitle}>
-            Search {searchType === 'speakers' ? 'Speakers' : 'Attendees'}
+            Search {searchType === 'speakers' ? 'Speakers' : searchType === 'attendees' ? 'Attendees' : 'Companies'}
           </Text>
         </View>
         
@@ -186,7 +192,7 @@ const SearchModal = ({
           <Search size={20} color="#999" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder={`Search ${searchType === 'speakers' ? 'speakers' : 'attendees'}...`}
+            placeholder={`Search ${searchType === 'speakers' ? 'speakers' : searchType === 'attendees' ? 'attendees' : 'companies'}...`}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoFocus
@@ -210,7 +216,7 @@ const SearchModal = ({
               ) : (
                 <Text style={styles.noResultsText}>No speakers found</Text>
               )
-            ) : (
+            ) : searchType === 'attendees' ? (
               filteredAttendees.length > 0 ? (
                 filteredAttendees.map(attendee => (
                   <TouchableOpacity 
@@ -223,6 +229,20 @@ const SearchModal = ({
                 ))
               ) : (
                 <Text style={styles.noResultsText}>No attendees found</Text>
+              )
+            ) : (
+              filteredCompanies.length > 0 ? (
+                filteredCompanies.map(company => (
+                  <TouchableOpacity 
+                    key={company.id} 
+                    style={styles.searchResultItem}
+                    onPress={() => navigateToCompanyProfile(company)}
+                  >
+                    {renderCompany(company)}
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text style={styles.noResultsText}>No companies found</Text>
               )
             )}
           </View>
@@ -285,6 +305,49 @@ const ImageCarousel = ({ images }: { images: string[] }) => {
     </View>
   );
 };
+
+// Add these type definitions before the EventLanding component
+
+interface Stage {
+  id: string;
+  name: string;
+}
+
+interface ScheduleItem {
+  id: string;
+  time: string;
+  title: string;
+  location: string;
+  speaker?: string;
+  description?: string;
+}
+
+interface DaySchedule {
+  [key: string]: ScheduleItem[];
+}
+
+interface EventSchedule {
+  [key: number]: DaySchedule;
+}
+
+interface Event {
+  id: string | string[];
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  description: string;
+  attendees: number;
+  images: string[];
+  stages: Stage[];
+  scheduleByDay: EventSchedule;
+  speakers: any[]; // Add proper type if needed
+  attendeesList: any[]; // Add proper type if needed
+  announcements: any[]; // Add proper type if needed
+  sideEvents: any[]; // Add proper type if needed
+  networkingEvents: any[]; // Add proper type if needed
+  companies: any[]; // Add proper type if needed
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -1151,7 +1214,95 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     width: 24,
     borderRadius: 4,
-  }
+  },
+  companiesContainer: {
+    padding: 16,
+  },
+  companyTypeTabs: {
+    marginBottom: 16,
+  },
+  companyTypeTab: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginRight: 8,
+    borderRadius: 20,
+    backgroundColor: '#f0f0f0',
+  },
+  companyTypeTabActive: {
+    backgroundColor: '#007AFF',
+  },
+  companyTypeText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#666',
+  },
+  companyTypeTextActive: {
+    color: '#fff',
+  },
+  companyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  companyLogo: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    marginRight: 16,
+  },
+  companyInfo: {
+    flex: 1,
+  },
+  companyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  companyName: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#333',
+  },
+  sponsorBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  sponsorBadgeText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#333',
+  },
+  companyDescription: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    marginBottom: 8,
+  },
+  companyStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  companyStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  companyStatText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+  },
 });
 
 const EventLanding: React.FC = () => {
@@ -1167,25 +1318,24 @@ const EventLanding: React.FC = () => {
   const [talkModalVisible, setTalkModalVisible] = useState(false);
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchType, setSearchType] = useState<'speakers' | 'attendees'>('attendees');
+  const [searchType, setSearchType] = useState<'speakers' | 'attendees' | 'companies'>('attendees');
   const [filteredSpeakers, setFilteredSpeakers] = useState<any[]>([]);
   const [filteredAttendees, setFilteredAttendees] = useState<any[]>([]);
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(4); // Number of attendees per page
-  // Schedule day state
+  const [pageSize] = useState(4);
   const [selectedDay, setSelectedDay] = useState(1);
-  // Header visibility state
+  const [selectedStage, setSelectedStage] = useState<string>('main');
   const [showFloatingHeader, setShowFloatingHeader] = useState(true);
+  const [selectedCompanyType, setSelectedCompanyType] = useState('all');
+  const [filteredCompanies, setFilteredCompanies] = useState<any[]>([]);
 
-  // TODO: Replace with actual event data fetching
-  const event = {
+  const event: Event = {
     id,
     title: 'Tech Conference 2025',
     date: 'March 15-17, 2025',
     time: '9:00 AM - 5:00 PM',
     location: 'Convention Center',
-    description: 'Join us for an exciting three-day conference featuring technology talks, workshops, and networking opportunities with industry leaders.',
+    description: 'Join us for an immersive three-day conference that brings together the brightest minds in technology. From groundbreaking AI innovations to sustainable tech solutions, Tech Conference 2025 features over 40 expert-led sessions, hands-on workshops, and unique networking opportunities. \n\nWhether you\'re a seasoned professional, startup founder, or tech enthusiast, you\'ll discover the latest trends, connect with industry leaders, and gain practical insights to drive your projects forward. Highlights include quantum computing demonstrations, AI ethics panels, and exclusive startup showcases. Don\'t miss this opportunity to be part of shaping the future of technology.',
     attendees: 250,
     images: [
       'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=400&fit=crop',
@@ -1303,163 +1453,349 @@ const EventLanding: React.FC = () => {
         sessions: ['Cloud Security Best Practices', 'Compliance in the Cloud'],
       }
     ],
+    stages: [
+      { id: 'main', name: 'Main Stage' },
+      { id: 'workshop', name: 'Workshop Room' },
+      { id: 'breakout', name: 'Breakout Room' },
+      { id: 'innovation', name: 'Innovation Lab' }
+    ],
     scheduleByDay: {
-      1: [
-        {
-          id: '1-1',
-          time: '8:30 AM',
-          title: 'Registration & Breakfast',
-          location: 'Main Hall',
-        },
-        {
-          id: '1-2',
-          time: '10:00 AM',
-          title: 'Opening Keynote: Future of Tech',
-          speaker: 'Dr. Sarah Chen',
-          location: 'Auditorium',
-          description: 'An inspiring look at how emerging technologies will shape our future over the next decade, with a focus on AI, quantum computing, and sustainable tech.'
-        },
-        {
-          id: '1-3',
-          time: '11:30 AM',
-          title: 'Workshop: AI Development',
-          speaker: 'John Doe',
-          location: 'Room 101',
-          description: 'Hands-on workshop exploring the latest frameworks and methodologies for developing AI applications.'
-        },
-        {
-          id: '1-4',
-          time: '1:00 PM',
-          title: 'Lunch Break',
-          location: 'Dining Area',
-        },
-        {
-          id: '1-5',
-          time: '2:00 PM',
-          title: 'Panel: Startup Success Stories',
-          speaker: 'Michael Rodriguez & Guests',
-          location: 'Main Stage',
-          description: 'Hear from successful founders about their journeys, challenges, and lessons learned while building their companies.'
-        },
-        {
-          id: '1-6',
-          time: '3:30 PM',
-          title: 'Workshop: Cloud Architecture',
-          speaker: 'Lisa Johnson',
-          location: 'Room 102',
-          description: 'Learn best practices for designing scalable and resilient cloud architectures for modern applications.'
-        },
-        {
-          id: '1-7',
-          time: '5:00 PM',
-          title: 'Networking Reception',
-          location: 'Rooftop Lounge',
-        },
-      ],
-      2: [
-        {
-          id: '2-1',
-          time: '9:00 AM',
-          title: 'Breakfast & Morning Networking',
-          location: 'Main Hall',
-        },
-        {
-          id: '2-2',
-          time: '10:00 AM',
-          title: 'Keynote: Cybersecurity Trends',
-          speaker: 'Alex Rivera',
-          location: 'Auditorium',
-          description: 'An in-depth look at emerging cybersecurity threats and strategies for protecting digital assets in an increasingly connected world.'
-        },
-        {
-          id: '2-3',
-          time: '11:30 AM',
-          title: 'Workshop: Product Innovation',
-          speaker: 'Emily Watson',
-          location: 'Room 101',
-          description: 'Practical techniques for fostering innovation within product teams and bringing new ideas to market effectively.'
-        },
-        {
-          id: '2-4',
-          time: '1:00 PM',
-          title: 'Lunch Break',
-          location: 'Dining Area',
-        },
-        {
-          id: '2-5',
-          time: '2:00 PM',
-          title: 'Panel: Diversity in Tech',
-          speaker: 'Various Industry Leaders',
-          location: 'Main Stage',
-          description: 'Industry leaders discuss strategies for creating more inclusive workplaces and diversifying the tech talent pipeline.'
-        },
-        {
-          id: '2-6',
-          time: '3:30 PM',
-          title: 'Workshop: Mobile Development',
-          speaker: 'James Wilson',
-          location: 'Room 102',
-          description: 'Hands-on session covering the latest tools and techniques for building high-performance mobile applications.'
-        },
-        {
-          id: '2-7',
-          time: '5:00 PM',
-          title: 'Tech Showcase & Demos',
-          location: 'Exhibition Hall',
-        },
-      ],
-      3: [
-        {
-          id: '3-1',
-          time: '9:00 AM',
-          title: 'Breakfast & Final Day Kickoff',
-          location: 'Main Hall',
-        },
-        {
-          id: '3-2',
-          time: '10:00 AM',
-          title: 'Keynote: Future of Work',
-          speaker: 'Maria Rodriguez',
-          location: 'Auditorium',
-          description: 'Exploring how technology is reshaping workplaces and what skills will be most valuable in the coming decade.'
-        },
-        {
-          id: '3-3',
-          time: '11:30 AM',
-          title: 'Workshop: Blockchain Applications',
-          speaker: 'Michael Brown',
-          location: 'Room 101',
-          description: 'Practical applications of blockchain technology beyond cryptocurrencies, with real-world case studies and implementation strategies.'
-        },
-        {
-          id: '3-4',
-          time: '1:00 PM',
-          title: 'Lunch Break',
-          location: 'Dining Area',
-        },
-        {
-          id: '3-5',
-          time: '2:00 PM',
-          title: 'Panel: Sustainable Technology',
-          speaker: 'Environmental Tech Leaders',
-          location: 'Main Stage',
-          description: 'Discussion on how technology can address climate change and environmental challenges while reducing its own carbon footprint.'
-        },
-        {
-          id: '3-6',
-          time: '3:30 PM',
-          title: 'Closing Keynote: Tech Ethics',
-          speaker: 'Dr. Olivia Garcia',
-          location: 'Auditorium',
-          description: 'A thought-provoking exploration of ethical considerations in technology development and deployment.'
-        },
-        {
-          id: '3-7',
-          time: '5:00 PM',
-          title: 'Closing Ceremony & Awards',
-          location: 'Main Stage',
-        },
-      ]
+      1: {
+        main: [
+          {
+            id: '1-1',
+            time: '8:30 AM',
+            title: 'Registration & Breakfast',
+            location: 'Main Hall',
+          },
+          {
+            id: '1-2',
+            time: '10:00 AM',
+            title: 'Opening Keynote: Future of Tech',
+            speaker: 'Dr. Sarah Chen',
+            location: 'Main Stage',
+            description: 'An inspiring look at how emerging technologies will shape our future over the next decade.'
+          },
+          {
+            id: '1-3',
+            time: '2:00 PM',
+            title: 'AI in Enterprise',
+            speaker: 'Dr. Maya Patel',
+            location: 'Main Stage',
+            description: 'Exploring practical applications of AI in enterprise environments.'
+          },
+          {
+            id: '1-4',
+            time: '4:30 PM',
+            title: 'Future of Cloud Computing',
+            speaker: 'Lisa Zhang',
+            location: 'Main Stage',
+            description: 'Latest trends and future predictions in cloud computing.'
+          }
+        ],
+        workshop: [
+          {
+            id: '1-5',
+            time: '11:30 AM',
+            title: 'Workshop: AI Development',
+            speaker: 'John Doe',
+            location: 'Workshop Room',
+            description: 'Hands-on workshop exploring the latest frameworks and methodologies for developing AI applications.'
+          },
+          {
+            id: '1-6',
+            time: '2:00 PM',
+            title: 'Quantum Computing Workshop',
+            speaker: 'Dr. James Mitchell',
+            location: 'Workshop Room',
+            description: 'Introduction to quantum computing principles and programming.'
+          },
+          {
+            id: '1-7',
+            time: '4:00 PM',
+            title: 'DevOps Best Practices',
+            speaker: 'Lisa Zhang',
+            location: 'Workshop Room',
+            description: 'Learn modern DevOps practices and tools.'
+          }
+        ],
+        breakout: [
+          {
+            id: '1-8',
+            time: '11:00 AM',
+            title: 'Cybersecurity Trends',
+            speaker: 'Alex Thompson',
+            location: 'Breakout Room',
+            description: 'Latest developments in cybersecurity.'
+          },
+          {
+            id: '1-9',
+            time: '2:00 PM',
+            title: 'Panel: Startup Success Stories',
+            speaker: 'Michael Rodriguez & Guests',
+            location: 'Breakout Room',
+            description: 'Hear from successful founders about their journeys, challenges, and lessons learned.'
+          },
+          {
+            id: '1-10',
+            time: '4:00 PM',
+            title: 'Web3 Architecture',
+            speaker: 'Robert Kim',
+            location: 'Breakout Room',
+            description: 'Deep dive into Web3 architecture patterns.'
+          }
+        ],
+        innovation: [
+          {
+            id: '1-11',
+            time: '10:30 AM',
+            title: 'IoT Solutions Workshop',
+            speaker: 'David Anderson',
+            location: 'Innovation Lab',
+            description: 'Hands-on IoT development workshop.'
+          },
+          {
+            id: '1-12',
+            time: '1:30 PM',
+            title: 'UX Research Methods',
+            speaker: 'Sofia Martinez',
+            location: 'Innovation Lab',
+            description: 'Modern UX research techniques and tools.'
+          },
+          {
+            id: '1-13',
+            time: '3:30 PM',
+            title: 'Workshop: Cloud Architecture',
+            speaker: 'Lisa Johnson',
+            location: 'Innovation Lab',
+            description: 'Learn best practices for designing scalable and resilient cloud architectures.'
+          }
+        ]
+      },
+      2: {
+        main: [
+          {
+            id: '2-1',
+            time: '9:00 AM',
+            title: 'Day 2 Opening Remarks',
+            location: 'Main Stage',
+          },
+          {
+            id: '2-2',
+            time: '10:00 AM',
+            title: 'Keynote: Cybersecurity Trends',
+            speaker: 'Alex Thompson',
+            location: 'Main Stage',
+            description: 'An in-depth look at emerging cybersecurity threats and strategies.'
+          },
+          {
+            id: '2-3',
+            time: '2:00 PM',
+            title: 'The Future of Work',
+            speaker: 'Rachel Foster',
+            location: 'Main Stage',
+            description: 'How AI and automation will transform the workplace.'
+          },
+          {
+            id: '2-4',
+            time: '4:30 PM',
+            title: 'Panel: Tech Ethics',
+            speaker: 'Dr. Maya Patel & Panel',
+            location: 'Main Stage',
+            description: 'Exploring ethical considerations in AI and technology.'
+          }
+        ],
+        workshop: [
+          {
+            id: '2-5',
+            time: '11:30 AM',
+            title: 'Workshop: Product Innovation',
+            speaker: 'Emily Watson',
+            location: 'Workshop Room',
+            description: 'Practical techniques for fostering innovation within product teams.'
+          },
+          {
+            id: '2-6',
+            time: '2:00 PM',
+            title: 'Cloud Security Workshop',
+            speaker: 'Thomas Wright',
+            location: 'Workshop Room',
+            description: 'Hands-on cloud security implementation.'
+          },
+          {
+            id: '2-7',
+            time: '4:00 PM',
+            title: 'Mobile Development',
+            speaker: 'Sofia Martinez',
+            location: 'Workshop Room',
+            description: 'Building modern mobile applications.'
+          }
+        ],
+        breakout: [
+          {
+            id: '2-8',
+            time: '11:00 AM',
+            title: 'Blockchain Deep Dive',
+            speaker: 'Robert Kim',
+            location: 'Breakout Room',
+            description: 'Technical deep dive into blockchain architecture.'
+          },
+          {
+            id: '2-9',
+            time: '2:00 PM',
+            title: 'Panel: Diversity in Tech',
+            speaker: 'Various Industry Leaders',
+            location: 'Breakout Room',
+            description: 'Creating inclusive tech workplaces.'
+          },
+          {
+            id: '2-10',
+            time: '4:00 PM',
+            title: 'Startup Funding',
+            speaker: 'Michael Rodriguez',
+            location: 'Breakout Room',
+            description: 'Navigate the startup funding landscape.'
+          }
+        ],
+        innovation: [
+          {
+            id: '2-11',
+            time: '10:30 AM',
+            title: 'Smart City Solutions',
+            speaker: 'David Anderson',
+            location: 'Innovation Lab',
+            description: 'IoT applications in smart cities.'
+          },
+          {
+            id: '2-12',
+            time: '1:30 PM',
+            title: 'AI Product Strategy',
+            speaker: 'Rachel Foster',
+            location: 'Innovation Lab',
+            description: 'Building successful AI-driven products.'
+          },
+          {
+            id: '2-13',
+            time: '3:30 PM',
+            title: 'Future of Cloud',
+            speaker: 'Lisa Zhang',
+            location: 'Innovation Lab',
+            description: 'Next-generation cloud architectures.'
+          }
+        ]
+      },
+      3: {
+        main: [
+          {
+            id: '3-1',
+            time: '9:00 AM',
+            title: 'Final Day Opening',
+            location: 'Main Stage',
+          },
+          {
+            id: '3-2',
+            time: '10:00 AM',
+            title: 'Quantum Computing Future',
+            speaker: 'Dr. James Mitchell',
+            location: 'Main Stage',
+            description: 'The impact of quantum computing on technology.'
+          },
+          {
+            id: '3-3',
+            time: '2:00 PM',
+            title: 'AI in Healthcare',
+            speaker: 'Dr. Maya Patel',
+            location: 'Main Stage',
+            description: 'AI applications in healthcare and medicine.'
+          },
+          {
+            id: '3-4',
+            time: '4:30 PM',
+            title: 'Closing Keynote',
+            speaker: 'Dr. Sarah Chen',
+            location: 'Main Stage',
+            description: 'Reflecting on the future of technology.'
+          }
+        ],
+        workshop: [
+          {
+            id: '3-5',
+            time: '11:30 AM',
+            title: 'Workshop: Blockchain Apps',
+            speaker: 'Robert Kim',
+            location: 'Workshop Room',
+            description: 'Building decentralized applications.'
+          },
+          {
+            id: '3-6',
+            time: '2:00 PM',
+            title: 'UX Research Methods',
+            speaker: 'Sofia Martinez',
+            location: 'Workshop Room',
+            description: 'Advanced UX research techniques.'
+          },
+          {
+            id: '3-7',
+            time: '4:00 PM',
+            title: 'DevSecOps Practices',
+            speaker: 'Thomas Wright',
+            location: 'Workshop Room',
+            description: 'Integrating security into DevOps.'
+          }
+        ],
+        breakout: [
+          {
+            id: '3-8',
+            time: '11:00 AM',
+            title: 'Edge Computing',
+            speaker: 'Lisa Zhang',
+            location: 'Breakout Room',
+            description: 'The future of edge computing.'
+          },
+          {
+            id: '3-9',
+            time: '2:00 PM',
+            title: 'Panel: Sustainable Tech',
+            speaker: 'Environmental Tech Leaders',
+            location: 'Breakout Room',
+            description: 'Technology\'s role in sustainability.'
+          },
+          {
+            id: '3-10',
+            time: '4:00 PM',
+            title: 'Future of Work',
+            speaker: 'Rachel Foster',
+            location: 'Breakout Room',
+            description: 'Preparing for the future workplace.'
+          }
+        ],
+        innovation: [
+          {
+            id: '3-11',
+            time: '10:30 AM',
+            title: 'AR/VR Workshop',
+            speaker: 'David Anderson',
+            location: 'Innovation Lab',
+            description: 'Hands-on AR/VR development.'
+          },
+          {
+            id: '3-12',
+            time: '1:30 PM',
+            title: 'ML Model Deployment',
+            speaker: 'Dr. Maya Patel',
+            location: 'Innovation Lab',
+            description: 'Production ML deployment strategies.'
+          },
+          {
+            id: '3-13',
+            time: '3:30 PM',
+            title: 'Innovation Workshop',
+            speaker: 'Emily Watson',
+            location: 'Innovation Lab',
+            description: 'Fostering innovation in teams.'
+          }
+        ]
+      }
     },
     announcements: [
       {
@@ -1544,6 +1880,212 @@ const EventLanding: React.FC = () => {
         attendees: 300,
       },
     ],
+    companies: [
+      {
+        id: '1',
+        name: 'TechCorp',
+        type: 'sponsor',
+        tier: 'platinum',
+        logo: 'https://picsum.photos/301',
+        description: 'Leading provider of enterprise AI solutions',
+        employeesAttending: 5,
+        booth: 'A1',
+        website: 'https://techcorp.com'
+      },
+      {
+        id: '2',
+        name: 'StartupX',
+        type: 'attendee',
+        logo: 'https://picsum.photos/302',
+        description: 'Innovative startup in the fintech space',
+        employeesAttending: 3,
+        website: 'https://startupx.com'
+      },
+      {
+        id: '3',
+        name: 'InnovateLabs',
+        type: 'sponsor',
+        tier: 'gold',
+        logo: 'https://picsum.photos/303',
+        description: 'Research and development in quantum computing',
+        employeesAttending: 4,
+        booth: 'B2',
+        website: 'https://innovatelabs.com'
+      },
+      {
+        id: '4',
+        name: 'DesignFirst',
+        type: 'sponsor',
+        tier: 'silver',
+        logo: 'https://picsum.photos/304',
+        description: 'UX design and research consultancy',
+        employeesAttending: 2,
+        booth: 'C3',
+        website: 'https://designfirst.com'
+      },
+      {
+        id: '5',
+        name: 'CloudScale',
+        type: 'sponsor',
+        tier: 'gold',
+        logo: 'https://picsum.photos/305',
+        description: 'Cloud infrastructure and scaling solutions',
+        employeesAttending: 6,
+        booth: 'B1',
+        website: 'https://cloudscale.com'
+      },
+      {
+        id: '6',
+        name: 'SecureNet',
+        type: 'attendee',
+        logo: 'https://picsum.photos/306',
+        description: 'Cybersecurity consulting and solutions',
+        employeesAttending: 2,
+        website: 'https://securenet.com'
+      },
+      {
+        id: '7',
+        name: 'DataMinds',
+        type: 'sponsor',
+        tier: 'platinum',
+        logo: 'https://picsum.photos/307',
+        description: 'AI and machine learning solutions',
+        employeesAttending: 8,
+        booth: 'A2',
+        website: 'https://dataminds.com'
+      },
+      {
+        id: '8',
+        name: 'ChainWorks',
+        type: 'attendee',
+        logo: 'https://picsum.photos/308',
+        description: 'Blockchain development and consulting',
+        employeesAttending: 3,
+        website: 'https://chainworks.com'
+      },
+      {
+        id: '9',
+        name: 'RoboTech Industries',
+        type: 'sponsor',
+        tier: 'gold',
+        logo: 'https://picsum.photos/309',
+        description: 'Robotics and automation solutions for manufacturing',
+        employeesAttending: 7,
+        booth: 'B3',
+        website: 'https://robotech.com'
+      },
+      {
+        id: '10',
+        name: 'GreenTech Solutions',
+        type: 'sponsor',
+        tier: 'silver',
+        logo: 'https://picsum.photos/310',
+        description: 'Sustainable technology and renewable energy solutions',
+        employeesAttending: 4,
+        booth: 'C1',
+        website: 'https://greentech.com'
+      },
+      {
+        id: '11',
+        name: 'QuantumLeap',
+        type: 'attendee',
+        logo: 'https://picsum.photos/311',
+        description: 'Quantum computing research and development',
+        employeesAttending: 2,
+        website: 'https://quantumleap.com'
+      },
+      {
+        id: '12',
+        name: 'CyberShield',
+        type: 'sponsor',
+        tier: 'silver',
+        logo: 'https://picsum.photos/312',
+        description: 'Enterprise cybersecurity and threat detection',
+        employeesAttending: 5,
+        booth: 'C2',
+        website: 'https://cybershield.com'
+      },
+      {
+        id: '13',
+        name: 'BioTech Innovations',
+        type: 'attendee',
+        logo: 'https://picsum.photos/313',
+        description: 'Biotechnology and healthcare tech solutions',
+        employeesAttending: 3,
+        website: 'https://biotechinnovations.com'
+      },
+      {
+        id: '14',
+        name: 'SmartCity Solutions',
+        type: 'sponsor',
+        tier: 'gold',
+        logo: 'https://picsum.photos/314',
+        description: 'IoT and smart city infrastructure technology',
+        employeesAttending: 6,
+        booth: 'B4',
+        website: 'https://smartcity.com'
+      },
+      {
+        id: '15',
+        name: 'VRWorld',
+        type: 'sponsor',
+        tier: 'silver',
+        logo: 'https://picsum.photos/315',
+        description: 'Virtual and augmented reality solutions',
+        employeesAttending: 4,
+        booth: 'C4',
+        website: 'https://vrworld.com'
+      },
+      {
+        id: '16',
+        name: 'DevOps Pro',
+        type: 'attendee',
+        logo: 'https://picsum.photos/316',
+        description: 'DevOps tools and automation solutions',
+        employeesAttending: 3,
+        website: 'https://devopspro.com'
+      },
+      {
+        id: '17',
+        name: 'EdgeCompute',
+        type: 'sponsor',
+        tier: 'platinum',
+        logo: 'https://picsum.photos/317',
+        description: 'Edge computing and distributed systems',
+        employeesAttending: 7,
+        booth: 'A3',
+        website: 'https://edgecompute.com'
+      },
+      {
+        id: '18',
+        name: 'AIEthics',
+        type: 'attendee',
+        logo: 'https://picsum.photos/318',
+        description: 'AI ethics and responsible innovation',
+        employeesAttending: 2,
+        website: 'https://aiethics.com'
+      },
+      {
+        id: '19',
+        name: 'DataSecurity Plus',
+        type: 'sponsor',
+        tier: 'gold',
+        logo: 'https://picsum.photos/319',
+        description: 'Data security and privacy solutions',
+        employeesAttending: 5,
+        booth: 'B5',
+        website: 'https://datasecurity.com'
+      },
+      {
+        id: '20',
+        name: 'CloudNative Systems',
+        type: 'attendee',
+        logo: 'https://picsum.photos/320',
+        description: 'Cloud-native application development',
+        employeesAttending: 4,
+        website: 'https://cloudnative.com'
+      }
+    ],
     attendeesList: [
       {
         id: '1',
@@ -1620,8 +2162,20 @@ const EventLanding: React.FC = () => {
     ],
   };
 
+  const getSponsorBadgeColor = (tier: string) => {
+    switch (tier.toLowerCase()) {
+      case 'platinum':
+        return '#E5E4E2';
+      case 'gold':
+        return '#FFD700';
+      case 'silver':
+        return '#C0C0C0';
+      default:
+        return '#B87333';
+    }
+  };
+
   useEffect(() => {
-    // Filter speakers based on search query
     if (searchType === 'speakers') {
       const filtered = event.speakers.filter(speaker => 
         speaker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1630,23 +2184,42 @@ const EventLanding: React.FC = () => {
         speaker.bio.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredSpeakers(filtered);
-    } else {
-      // Filter attendees based on search query
+    } else if (searchType === 'attendees') {
       const filtered = event.attendeesList.filter(attendee => 
         attendee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         attendee.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
         attendee.company.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredAttendees(filtered);
+    } else if (searchType === 'companies') {
+      const filtered = event.companies.filter(company => {
+        if (selectedCompanyType !== 'all' && company.type !== selectedCompanyType) {
+          return false;
+        }
+        return (
+          company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          company.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      });
+      setFilteredCompanies(filtered);
     }
-  }, [searchQuery, searchType]);
+  }, [searchQuery, searchType, selectedCompanyType]);
 
-  // Reset pagination when tab changes
+  // Add new effect to initialize filtered companies
+  useEffect(() => {
+    const filtered = event.companies.filter(company => {
+      if (selectedCompanyType !== 'all' && company.type !== selectedCompanyType) {
+        return false;
+      }
+      return true;
+    });
+    setFilteredCompanies(filtered);
+  }, [selectedCompanyType]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedTab]);
 
-  // Calculate pagination values
   const totalPages = Math.ceil(event.attendeesList.length / pageSize);
   const paginatedAttendees = event.attendeesList.slice(
     (currentPage - 1) * pageSize,
@@ -1666,43 +2239,18 @@ const EventLanding: React.FC = () => {
   };
 
   const navigateToProfile = () => {
-    // Navigate to the event profile tab stack with the event ID
     router.push({
       pathname: "/event-profile/contact",
       params: { id }
     });
   };
 
-  const navigateToSpeakerProfile = (speaker: any) => {
-    // Close the search modal if it's open
-    if (searchModalVisible) {
-      setSearchModalVisible(false);
-    }
-    
-    // Navigate to speaker profile
-    router.push({
-      pathname: "/speaker/[id]",
-      params: { 
-        id: speaker.id,
-        eventId: id
-      }
-    });
+  const navigateToSpeakerProfile = (speakerId: string) => {
+    router.push(`/speaker/${speakerId}`);
   };
 
-  const navigateToAttendeeProfile = (attendee: any) => {
-    // Close the search modal if it's open
-    if (searchModalVisible) {
-      setSearchModalVisible(false);
-    }
-    
-    // Navigate to attendee profile
-    router.push({
-      pathname: "/attendee/[id]",
-      params: { 
-        id: attendee.id,
-        eventId: id
-      }
-    });
+  const navigateToAttendeeProfile = (attendeeId: string) => {
+    router.push(`/attendee/${attendeeId}`);
   };
 
   const toggleSpeakerFavorite = (speakerId: string) => {
@@ -1723,7 +2271,7 @@ const EventLanding: React.FC = () => {
     setTalkModalVisible(true);
   };
 
-  const openSearchModal = (type: 'speakers' | 'attendees') => {
+  const openSearchModal = (type: 'speakers' | 'attendees' | 'companies') => {
     setSearchType(type);
     setSearchQuery('');
     setSearchModalVisible(true);
@@ -1733,7 +2281,7 @@ const EventLanding: React.FC = () => {
     <TouchableOpacity 
       key={speaker.id} 
       style={styles.speakerCard}
-      onPress={() => navigateToSpeakerProfile(speaker)}
+      onPress={() => navigateToSpeakerProfile(speaker.id)}
     >
       <Image 
         source={{ uri: speaker.image }}
@@ -1760,29 +2308,13 @@ const EventLanding: React.FC = () => {
     </TouchableOpacity>
   );
 
-  const renderScheduleItem = (item: any) => (
-    <TouchableOpacity 
-      key={item.id} 
-      style={styles.scheduleItem}
-      onPress={() => openTalkDetail(item)}
-    >
-      <View style={styles.scheduleTime}>
-        <Text style={styles.scheduleTimeText}>{item.time}</Text>
-        <View style={styles.timelineDot} />
-      </View>
-      <View style={styles.scheduleContent}>
-        <Text style={styles.scheduleTitle}>{item.title}</Text>
-        {item.speaker && (
-          <Text style={styles.scheduleSpeaker}>Speaker: {item.speaker}</Text>
-        )}
-        <View style={styles.scheduleLocation}>
-          <MapPin size={14} color="#666" />
-          <Text style={styles.scheduleLocationText}>{item.location}</Text>
-        </View>
-      </View>
-      <ChevronRight size={20} color="#ccc" />
-    </TouchableOpacity>
-  );
+  const currentSchedule = selectedStage === 'all'
+    ? Object.values(event.scheduleByDay[selectedDay] || {}).flat().sort((a, b) => {
+        const timeA = new Date(`2024-01-01 ${a.time}`);
+        const timeB = new Date(`2024-01-01 ${b.time}`);
+        return timeA.getTime() - timeB.getTime();
+      })
+    : event.scheduleByDay[selectedDay]?.[selectedStage] || [];
 
   const renderAnnouncement = (announcement: any) => (
     <View key={announcement.id} style={styles.announcement}>
@@ -1851,7 +2383,7 @@ const EventLanding: React.FC = () => {
     <TouchableOpacity 
       key={attendee.id} 
       style={styles.attendeeCard}
-      onPress={() => navigateToAttendeeProfile(attendee)}
+      onPress={() => navigateToAttendeeProfile(attendee.id)}
     >
       <Image 
         source={{ uri: attendee.image }}
@@ -1873,8 +2405,7 @@ const EventLanding: React.FC = () => {
           attendee.isConnected && styles.connectedButton
         ]}
         onPress={(e) => {
-          e.stopPropagation(); // Prevent triggering the parent onPress
-          // Toggle connection logic would go here
+          e.stopPropagation();
         }}
       >
         <Text style={[
@@ -1887,7 +2418,38 @@ const EventLanding: React.FC = () => {
     </TouchableOpacity>
   );
 
-  // Update animation values for smoother transition
+  const renderCompany = (company: any) => (
+    <View style={styles.companyCard}>
+      <Image source={{ uri: company.logo }} style={styles.companyLogo} />
+      <View style={styles.companyInfo}>
+        <View style={styles.companyHeader}>
+          <Text style={styles.companyName}>{company.name}</Text>
+          {company.type === 'sponsor' && (
+            <View style={[styles.sponsorBadge, { backgroundColor: getSponsorBadgeColor(company.tier) }]}>
+              <Text style={styles.sponsorBadgeText}>{company.tier}</Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.companyDescription} numberOfLines={2}>
+          {company.description}
+        </Text>
+        <View style={styles.companyStats}>
+          <View style={styles.companyStat}>
+            <Users size={14} color="#666" />
+            <Text style={styles.companyStatText}>{company.employeesAttending} attending</Text>
+          </View>
+          {company.type === 'sponsor' && company.booth && (
+            <View style={styles.companyStat}>
+              <MapPin size={14} color="#666" />
+              <Text style={styles.companyStatText}>Booth {company.booth}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+      <ChevronRight size={20} color="#ccc" />
+    </View>
+  );
+
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 100],
     outputRange: [0, 1],
@@ -1900,7 +2462,6 @@ const EventLanding: React.FC = () => {
     extrapolate: 'clamp',
   });
 
-  // Update scroll listener threshold
   useEffect(() => {
     const listener = scrollY.addListener((state: { value: number }) => {
       setShowFloatingHeader(state.value > 80);
@@ -1908,12 +2469,12 @@ const EventLanding: React.FC = () => {
     return () => scrollY.removeListener(listener);
   }, []);
 
-  // Get current day's schedule
-  const currentSchedule = event.scheduleByDay[selectedDay as keyof typeof event.scheduleByDay] || [];
-
-  // Handle back navigation
   const handleBack = () => {
     router.back();
+  };
+
+  const navigateToCompanyProfile = (companyId: string) => {
+    router.push(`/company/${companyId}`);
   };
 
   return (
@@ -1957,7 +2518,6 @@ const EventLanding: React.FC = () => {
         <View style={styles.heroContainer}>
           <ImageCarousel images={event.images} />
           
-          {/* Overlay gradient */}
           <View style={styles.heroOverlay}>
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.85)']}
@@ -1965,7 +2525,6 @@ const EventLanding: React.FC = () => {
               locations={[0, 0.4, 1]}
             />
             
-            {/* Hero title overlay */}
             <View style={styles.heroTitleContainer}>
               <Text style={styles.heroTitle}>{event.title}</Text>
               
@@ -2044,6 +2603,12 @@ const EventLanding: React.FC = () => {
                 <Text style={[styles.tabText, selectedTab === 'attendees' && styles.tabTextActive]}>Attendees</Text>
               </TouchableOpacity>
               <TouchableOpacity 
+                style={[styles.tab, selectedTab === 'companies' && styles.tabActive]}
+                onPress={() => setSelectedTab('companies')}
+              >
+                <Text style={[styles.tabText, selectedTab === 'companies' && styles.tabTextActive]}>Companies</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
                 style={[styles.tab, selectedTab === 'side-events' && styles.tabActive]}
                 onPress={() => setSelectedTab('side-events')}
               >
@@ -2083,7 +2648,7 @@ const EventLanding: React.FC = () => {
 
           {selectedTab === 'schedule' && (
             <View style={styles.scheduleContainer}>
-              <View style={styles.dayTabs}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.dayTabs]}>
                 <TouchableOpacity 
                   style={[styles.dayTab, selectedDay === 1 && styles.dayTabActive]}
                   onPress={() => setSelectedDay(1)}
@@ -2102,9 +2667,67 @@ const EventLanding: React.FC = () => {
                 >
                   <Text style={[styles.dayTabText, selectedDay === 3 && styles.dayTabTextActive]}>Day 3</Text>
                 </TouchableOpacity>
-              </View>
-              <View style={styles.timeline} />
-              {currentSchedule.map(renderScheduleItem)}
+              </ScrollView>
+
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                style={[styles.dayTabs, { marginTop: 8 }]}
+              >
+                <TouchableOpacity 
+                  style={[styles.dayTab, selectedStage === 'all' && styles.dayTabActive]}
+                  onPress={() => setSelectedStage('all')}
+                >
+                  <Text style={[styles.dayTabText, selectedStage === 'all' && styles.dayTabTextActive]}>
+                    All Stages
+                  </Text>
+                </TouchableOpacity>
+                {event.stages.map((stage) => (
+                  <TouchableOpacity 
+                    key={stage.id}
+                    style={[styles.dayTab, selectedStage === stage.id && styles.dayTabActive]}
+                    onPress={() => setSelectedStage(stage.id)}
+                  >
+                    <Text style={[styles.dayTabText, selectedStage === stage.id && styles.dayTabTextActive]}>
+                      {stage.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <ScrollView style={{ flex: 1, paddingBottom: 20 }}>
+                <View style={styles.timeline} />
+                {(selectedStage === 'all' 
+                  ? Object.values(event.scheduleByDay[selectedDay] || {}).flat().sort((a, b) => {
+                      const timeA = new Date(`2024-01-01 ${a.time}`);
+                      const timeB = new Date(`2024-01-01 ${b.time}`);
+                      return timeA.getTime() - timeB.getTime();
+                    })
+                  : event.scheduleByDay[selectedDay]?.[selectedStage] || []
+                ).map(item => (
+                  <TouchableOpacity 
+                    key={item.id} 
+                    style={styles.scheduleItem}
+                    onPress={() => openTalkDetail(item)}
+                  >
+                    <View style={styles.scheduleTime}>
+                      <Text style={styles.scheduleTimeText}>{item.time}</Text>
+                      <View style={styles.timelineDot} />
+                    </View>
+                    <View style={styles.scheduleContent}>
+                      <Text style={styles.scheduleTitle}>{item.title}</Text>
+                      {item.speaker && (
+                        <Text style={styles.scheduleSpeaker}>Speaker: {item.speaker}</Text>
+                      )}
+                      <View style={styles.scheduleLocation}>
+                        <MapPin size={14} color="#666" />
+                        <Text style={styles.scheduleLocationText}>{item.location}</Text>
+                      </View>
+                    </View>
+                    <ChevronRight size={20} color="#ccc" />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
           )}
 
@@ -2141,7 +2764,6 @@ const EventLanding: React.FC = () => {
               </View>
               {paginatedAttendees.map(renderAttendee)}
               
-              {/* Pagination Controls */}
               <View style={styles.paginationContainer}>
                 <TouchableOpacity 
                   style={[styles.paginationButton, currentPage === 1 && styles.paginationButtonDisabled]}
@@ -2166,6 +2788,83 @@ const EventLanding: React.FC = () => {
             </View>
           )}
 
+          {selectedTab === 'companies' && (
+            <View style={styles.companiesContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Companies ({event.companies.length})</Text>
+                <TouchableOpacity 
+                  style={styles.searchButton}
+                  onPress={() => openSearchModal('companies')}
+                >
+                  <Search size={20} color="#007AFF" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.companyTypeTabs}>
+                <TouchableOpacity 
+                  style={[styles.companyTypeTab, selectedCompanyType === 'all' && styles.companyTypeTabActive]}
+                  onPress={() => setSelectedCompanyType('all')}
+                >
+                  <Text style={[styles.companyTypeText, selectedCompanyType === 'all' && styles.companyTypeTextActive]}>
+                    All Companies
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.companyTypeTab, selectedCompanyType === 'sponsor' && styles.companyTypeTabActive]}
+                  onPress={() => setSelectedCompanyType('sponsor')}
+                >
+                  <Text style={[styles.companyTypeText, selectedCompanyType === 'sponsor' && styles.companyTypeTextActive]}>
+                    Sponsors
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.companyTypeTab, selectedCompanyType === 'attendee' && styles.companyTypeTabActive]}
+                  onPress={() => setSelectedCompanyType('attendee')}
+                >
+                  <Text style={[styles.companyTypeText, selectedCompanyType === 'attendee' && styles.companyTypeTextActive]}>
+                    Attending Companies
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+
+              {filteredCompanies.map((company) => (
+                <TouchableOpacity 
+                  key={company.id} 
+                  style={styles.companyCard}
+                  onPress={() => navigateToCompanyProfile(company.id)}
+                >
+                  <Image source={{ uri: company.logo }} style={styles.companyLogo} />
+                  <View style={styles.companyInfo}>
+                    <View style={styles.companyHeader}>
+                      <Text style={styles.companyName}>{company.name}</Text>
+                      {company.type === 'sponsor' && (
+                        <View style={[styles.sponsorBadge, { backgroundColor: getSponsorBadgeColor(company.tier) }]}>
+                          <Text style={styles.sponsorBadgeText}>{company.tier}</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.companyDescription} numberOfLines={2}>
+                      {company.description}
+                    </Text>
+                    <View style={styles.companyStats}>
+                      <View style={styles.companyStat}>
+                        <Users size={14} color="#666" />
+                        <Text style={styles.companyStatText}>{company.employeesAttending} attending</Text>
+                      </View>
+                      {company.type === 'sponsor' && company.booth && (
+                        <View style={styles.companyStat}>
+                          <MapPin size={14} color="#666" />
+                          <Text style={styles.companyStatText}>Booth {company.booth}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                  <ChevronRight size={20} color="#ccc" />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
           {selectedTab === 'side-events' && (
             <View style={styles.sideEventsContainer}>
               {event.sideEvents.map(renderSideEvent)}
@@ -2186,21 +2885,18 @@ const EventLanding: React.FC = () => {
         </View>
       </Animated.ScrollView>
 
-      {/* Speaker Detail Modal */}
       <SpeakerDetailModal 
         visible={speakerModalVisible}
         speaker={selectedSpeaker}
         onClose={() => setSpeakerModalVisible(false)}
       />
 
-      {/* Talk Detail Modal */}
       <TalkDetailModal 
         visible={talkModalVisible}
         talk={selectedTalk}
         onClose={() => setTalkModalVisible(false)}
       />
 
-      {/* Search Modal */}
       <SearchModal 
         visible={searchModalVisible}
         searchType={searchType}
@@ -2209,10 +2905,13 @@ const EventLanding: React.FC = () => {
         onClose={() => setSearchModalVisible(false)}
         filteredSpeakers={filteredSpeakers}
         filteredAttendees={filteredAttendees}
+        filteredCompanies={filteredCompanies}
         renderSpeaker={renderSpeaker}
         renderAttendee={renderAttendee}
+        renderCompany={renderCompany}
         navigateToSpeakerProfile={navigateToSpeakerProfile}
         navigateToAttendeeProfile={navigateToAttendeeProfile}
+        navigateToCompanyProfile={navigateToCompanyProfile}
       />
     </View>
   );

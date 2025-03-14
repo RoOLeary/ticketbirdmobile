@@ -1,8 +1,11 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
-import { UserCircle, Calendar, QrCode } from 'lucide-react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { UserCircle, Calendar, QrCode, ChevronLeft } from 'lucide-react-native';
+import { TouchableOpacity, Text } from 'react-native';
 
 export default function EventProfileLayout() {
+  const router = useRouter();
+
   return (
     <Tabs
       screenOptions={{
@@ -31,6 +34,22 @@ export default function EventProfileLayout() {
           title: 'Scans',
           tabBarIcon: ({ color, size }) => <QrCode size={size} color={color} />,
           headerTitle: 'Scanned Contacts',
+          headerLeft: () => (
+            <TouchableOpacity 
+              style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 16 }}
+              onPress={() => router.back()}
+            >
+              <ChevronLeft size={24} color="#007AFF" />
+              <Text style={{ 
+                fontSize: 17, 
+                fontFamily: 'Inter-Medium', 
+                color: '#007AFF', 
+                marginLeft: 4 
+              }}>
+                Back
+              </Text>
+            </TouchableOpacity>
+          ),
         }}
       />
       <Tabs.Screen
