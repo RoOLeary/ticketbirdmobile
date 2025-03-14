@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface PaymentMethod {
   id: string;
-  type: 'card' | 'paypal';
+  type: 'card' | 'paypal' | 'mollie' | 'ideal';
   label: string;
   lastFour?: string;
   expiryDate?: string;
@@ -19,7 +19,7 @@ const PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: '1',
     type: 'card',
-    label: 'Visa',
+    label: 'Stripe',
     lastFour: '4242',
     expiryDate: '12/25',
     isDefault: true,
@@ -38,6 +38,18 @@ const PAYMENT_METHODS: PaymentMethod[] = [
     label: 'PayPal',
     isDefault: false,
   },
+  {
+    id: '4',
+    type: 'mollie',
+    label: 'Mollie',
+    isDefault: false,
+  },
+  {
+    id: '5',
+    type: 'ideal',
+    label: 'iDeal',
+    isDefault: false,
+  }
 ];
 
 const TOPICS = [
@@ -179,9 +191,19 @@ export default function Profile() {
       <View style={styles.paymentMethodIcon}>
         {method.type === 'card' ? (
           <CreditCard size={24} color="#007AFF" />
-        ) : (
+        ) : method.type === 'paypal' ? (
           <Image 
             source={{ uri: 'https://www.paypalobjects.com/webstatic/icon/pp258.png' }}
+            style={styles.paypalIcon}
+          />
+        ) : method.type === 'mollie' ? (
+          <Image 
+            source={{ uri: 'https://www.mollie.com/images/favicon/favicon-96x96.png' }}
+            style={styles.paypalIcon}
+          />
+        ) : (
+          <Image 
+            source={{ uri: 'https://www.ideal.nl/img/ideal-logo.png' }}
             style={styles.paypalIcon}
           />
         )}
@@ -478,13 +500,33 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   saveButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    backgroundColor: '#007AFF',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#E5E5EA',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   saveButtonText: {
     fontSize: 17,
-    fontFamily: 'Inter-Medium',
-    color: '#007AFF',
+    fontFamily: 'Inter-SemiBold',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  saveButtonTextDisabled: {
+    color: '#8E8E93',
   },
   scrollContainer: {
     flex: 1,
@@ -686,12 +728,6 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  saveButtonTextDisabled: {
-    color: '#fff8',
   },
   logoutButton: {
     backgroundColor: '#FF3B30',

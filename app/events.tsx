@@ -28,7 +28,7 @@ const EVENTS: Event[] = [
     image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=400&fit=crop',
     attendees: 1200,
     category: 'Technology',
-    price: '$499',
+    price: '€1299',
   },
   {
     id: '2',
@@ -50,7 +50,7 @@ const EVENTS: Event[] = [
     image: 'https://images.unsplash.com/photo-1527011046414-4781f1f94f8c?w=800&h=400&fit=crop',
     attendees: 500,
     category: 'Photography',
-    price: '$25',
+    price: '€25',
   },
 ];
 

@@ -34,7 +34,7 @@ const EVENTS: Record<string, EventDetails> = {
     description: 'Join us for the biggest tech conference of 2025! Featuring keynote speakers from leading tech companies, hands-on workshops, and networking opportunities. \n\nTopics include AI, Web3, Cloud Computing, and more.',
     attendees: 1200,
     category: 'Technology',
-    price: '$499',
+    price: '€1299',
     organizer: {
       name: 'TechEvents Inc.',
       image: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&h=100&fit=crop'
