@@ -1,27 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, Image, ScrollView, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/stores/authStore';
-import { useFavoritesStore } from '@/stores/favoritesStore';
-import { Heart } from 'lucide-react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, RefreshControl, FlatList } from 'react-native';
+import { Link, useRouter } from 'expo-router';
+import { Heart, MessageCircle, Share2, Calendar, MapPin } from 'lucide-react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useFavoritesStore } from '@/stores/useFavoritesStore';
 
 interface Story {
   id: string;
   username: string;
   avatar: string;
   title: string;
-}
-
-interface Post {
-  id: string;
-  username: string;
-  avatar: string;
-  image: string;
-  caption: string;
-  topic: string;
-  likes: number;
-  timestamp: string;
 }
 
 const STORIES: Story[] = [
@@ -54,228 +42,223 @@ const STORIES: Story[] = [
     username: 'john_dev',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
     title: 'Coding Journey'
-  },
-  { 
-    id: '6',
-    username: 'emma_ux',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop',
-    title: 'UX Insights'
-  },
-  { 
-    id: '7',
-    username: 'david_ai',
-    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop',
-    title: 'AI Updates'
-  },
-  { 
-    id: '8',
-    username: 'sophia_web',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop',
-    title: 'Web Trends'
   }
 ];
+
+interface Post {
+  id: string;
+  user: {
+    name: string;
+    avatar: string;
+  };
+  event: {
+    title: string;
+    date: string;
+    location: string;
+    image: string;
+  };
+  content: string;
+  likes: number;
+  comments: number;
+  liked: boolean;
+  timestamp: string;
+}
 
 const POSTS: Post[] = [
   {
     id: '1',
-    username: 'techie_sarah',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=400&fit=crop',
-    caption: 'Just finished setting up my new development environment! #coding #tech',
-    topic: 'Technology',
-    likes: 234,
-    timestamp: '2 hours ago'
+    user: {
+      name: 'Sarah Johnson',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
+    },
+    event: {
+      title: 'Tech Conference 2025',
+      date: 'March 15, 2025',
+      location: 'Innovation Center, Silicon Valley',
+      image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=400&fit=crop',
+    },
+    content: "Just secured my ticket for #TechConf2025! Can't wait to learn about the latest in AI and meet fellow tech enthusiasts. Who else is going? 🚀",
+    likes: 128,
+    comments: 24,
+    liked: false,
+    timestamp: '2 hours ago',
   },
   {
     id: '2',
-    username: 'design_master',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop',
-    image: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&h=400&fit=crop',
-    caption: 'New design exploration for the upcoming project 🎨 #design #creativity',
-    topic: 'Design',
-    likes: 456,
-    timestamp: '3 hours ago'
+    user: {
+      name: 'Michael Chen',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+    },
+    event: {
+      title: 'Design Systems Workshop',
+      date: 'April 5, 2025',
+      location: 'Creative Hub Downtown',
+      image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=400&fit=crop',
+    },
+    content: 'Excited to share my experience from the Design Systems Workshop! The insights on scalable design practices were invaluable. Here are some key takeaways... 🎨 #DesignSystems #UX',
+    likes: 95,
+    comments: 18,
+    liked: true,
+    timestamp: '5 hours ago',
   },
   {
     id: '3',
-    username: 'ai_innovator',
-    avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100&h=100&fit=crop',
-    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop',
-    caption: 'Exploring the latest developments in AI and machine learning 🤖 #AI #future',
-    topic: 'Technology',
-    likes: 789,
-    timestamp: '4 hours ago'
+    user: {
+      name: 'Emily Rodriguez',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop',
+    },
+    event: {
+      title: 'Photography Exhibition',
+      date: 'May 20, 2025',
+      location: 'Metropolitan Gallery',
+      image: 'https://images.unsplash.com/photo-1527011046414-4781f1f94f8c?w=800&h=400&fit=crop',
+    },
+    content: 'Honored to have my work featured in the upcoming Photography Exhibition! Here\'s a sneak peek of my collection "Urban Perspectives" 📸 #Photography #Art',
+    likes: 256,
+    comments: 42,
+    liked: false,
+    timestamp: '1 day ago',
   },
-  {
-    id: '4',
-    username: 'ux_expert',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop',
-    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=400&fit=crop',
-    caption: 'User experience is all about understanding human behavior 🧠 #UX #design',
-    topic: 'Design',
-    likes: 567,
-    timestamp: '5 hours ago'
-  },
-  {
-    id: '5',
-    username: 'web_developer',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
-    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=400&fit=crop',
-    caption: 'Clean code is not just about writing code, it\'s about crafting solutions 💻 #coding #webdev',
-    topic: 'Technology',
-    likes: 345,
-    timestamp: '6 hours ago'
-  },
-  {
-    id: '6',
-    username: 'mobile_guru',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop',
-    image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=400&fit=crop',
-    caption: 'The future of mobile development is cross-platform 📱 #mobile #development',
-    topic: 'Technology',
-    likes: 678,
-    timestamp: '7 hours ago'
-  },
-  {
-    id: '7',
-    username: 'data_scientist',
-    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop',
-    caption: 'Data tells stories that words cannot express 📊 #data #analytics',
-    topic: 'Technology',
-    likes: 890,
-    timestamp: '8 hours ago'
-  },
-  {
-    id: '8',
-    username: 'creative_designer',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop',
-    image: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&h=400&fit=crop',
-    caption: 'Design is not just what it looks like, design is how it works ✨ #design #creativity',
-    topic: 'Design',
-    likes: 432,
-    timestamp: '9 hours ago'
-  }
 ];
 
-const StoryItem = ({ item, onPress }: { item: Story; onPress: () => void }) => (
-  <TouchableOpacity style={styles.storyContainer} onPress={onPress}>
-    <View style={styles.storyRing}>
-      <Image source={{ uri: item.avatar }} style={styles.storyAvatar} />
-    </View>
-    <Text style={styles.storyUsername} numberOfLines={1}>
-      {item.username}
-    </Text>
-    <Text style={styles.storyTitle} numberOfLines={1}>
-      {item.title}
-    </Text>
-  </TouchableOpacity>
-);
-
-const PostCard = ({ item, isFavorite, onToggleFavorite, onUserPress }: { 
-  item: Post; 
-  isFavorite: boolean;
-  onToggleFavorite: () => void;
-  onUserPress: () => void;
-}) => (
-  <Animated.View 
-    entering={FadeIn.duration(400)} 
-    style={styles.postCard}
-  >
-    <View style={styles.postHeader}>
-      <TouchableOpacity style={styles.userInfo} onPress={onUserPress}>
-        <Image source={{ uri: item.avatar }} style={styles.postAvatar} />
-        <View>
-          <Text style={styles.postUsername}>{item.username}</Text>
-          <Text style={styles.timestamp}>{item.timestamp}</Text>
-        </View>
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
-        onPress={onToggleFavorite}
-      >
-        <Heart 
-          size={20} 
-          color={isFavorite ? '#fff' : '#666'} 
-          fill={isFavorite ? '#fff' : 'none'}
-        />
-      </TouchableOpacity>
-    </View>
-    <Image source={{ uri: item.image }} style={styles.postImage} />
-    <View style={styles.postFooter}>
-      <View style={styles.topicBadge}>
-        <Text style={styles.topicText}>{item.topic}</Text>
-      </View>
-      <Text style={styles.likes}>{item.likes} likes</Text>
-      <Text style={styles.caption}>{item.caption}</Text>
-    </View>
-  </Animated.View>
-);
-
-export default function Feed() {
+const StoryItem = ({ story }: { story: Story }) => {
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
-  const userTopics = user?.topics || [];
+  
+  return (
+    <TouchableOpacity 
+      style={styles.storyContainer} 
+      onPress={() => router.push(`/user/${story.username}`)}
+    >
+      <View style={styles.storyRing}>
+        <Image source={{ uri: story.avatar }} style={styles.storyAvatar} />
+      </View>
+      <Text style={styles.storyUsername} numberOfLines={1}>
+        {story.username}
+      </Text>
+      <Text style={styles.storyTitle} numberOfLines={1}>
+        {story.title}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
+const PostCard = ({ post }: { post: Post }) => {
+  const router = useRouter();
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
+  const isPostFavorite = isFavorite(post.id);
 
-  const handleStoryPress = (username: string) => {
-    router.push(`/user/${username}`);
-  };
-
-  const handleToggleFavorite = (post: Post) => {
-    const id = `post-${post.id}`;
-    if (isFavorite(id)) {
-      removeFavorite(id);
+  const handleLike = () => {
+    if (isPostFavorite) {
+      removeFavorite(post.id);
     } else {
       addFavorite({
-        id,
+        id: post.id,
         type: 'post',
-        title: post.caption,
-        image: post.image,
-        author: {
-          username: post.username,
-          avatar: post.avatar,
-        },
-        category: post.topic,
-        date: post.timestamp,
+        user: post.user,
+        event: post.event,
+        content: post.content,
+        timestamp: post.timestamp,
       });
     }
   };
 
+  const handleShare = () => {
+    // Implement share functionality
+  };
+
   return (
-    <ScrollView style={styles.container}>
+    <Animated.View 
+      entering={FadeInDown.duration(400)}
+      style={styles.postCard}
+    >
+      <View style={styles.postHeader}>
+        <View style={styles.userInfo}>
+          <Image source={{ uri: post.user.avatar }} style={styles.avatar} />
+          <View>
+            <Text style={styles.userName}>{post.user.name}</Text>
+            <Text style={styles.timestamp}>{post.timestamp}</Text>
+          </View>
+        </View>
+      </View>
+
+      <Text style={styles.content}>{post.content}</Text>
+
+      <Link href={`/events/${post.id}`} asChild>
+        <TouchableOpacity style={styles.eventCard}>
+          <Image source={{ uri: post.event.image }} style={styles.eventImage} />
+          <View style={styles.eventInfo}>
+            <Text style={styles.eventTitle}>{post.event.title}</Text>
+            <View style={styles.eventDetails}>
+              <View style={styles.detailRow}>
+                <Calendar size={14} color="#666" />
+                <Text style={styles.detailText}>{post.event.date}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <MapPin size={14} color="#666" />
+                <Text style={styles.detailText}>{post.event.location}</Text>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Link>
+
+      <View style={styles.postActions}>
+        <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
+          <Heart 
+            size={20} 
+            color={isPostFavorite ? '#FF3B30' : '#666'} 
+            fill={isPostFavorite ? '#FF3B30' : 'none'} 
+          />
+          <Text style={styles.actionText}>{post.likes}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.actionButton}>
+          <MessageCircle size={20} color="#666" />
+          <Text style={styles.actionText}>{post.comments}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
+          <Share2 size={20} color="#666" />
+        </TouchableOpacity>
+      </View>
+    </Animated.View>
+  );
+};
+
+export default function Feed() {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // Simulate data fetching
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
+
+  return (
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <View style={styles.storiesSection}>
         <Text style={styles.sectionTitle}>Stories</Text>
         <FlatList
           data={STORIES}
-          renderItem={({ item }) => (
-            <StoryItem 
-              item={item} 
-              onPress={() => handleStoryPress(item.username)}
-            />
-          )}
+          renderItem={({ item }) => <StoryItem story={item} />}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.storiesList}
         />
       </View>
-      
-      <View style={styles.feedSection}>
-        <Text style={styles.sectionTitle}>Your Feed</Text>
-        <FlatList
-          data={POSTS.filter(post => userTopics.includes(post.topic))}
-          renderItem={({ item }) => (
-            <PostCard 
-              item={item}
-              isFavorite={isFavorite(`post-${item.id}`)}
-              onToggleFavorite={() => handleToggleFavorite(item)}
-              onUserPress={() => handleStoryPress(item.username)}
-            />
-          )}
-          keyExtractor={(item) => item.id}
-          scrollEnabled={false}
-        />
+
+      <View style={styles.feedContent}>
+        {POSTS.map((post) => (
+          <PostCard key={post.id} post={post} />
+        ))}
       </View>
     </ScrollView>
   );
@@ -287,22 +270,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   storiesSection: {
-    padding: 16,
     backgroundColor: '#fff',
+    paddingVertical: 16,
     marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
+    marginLeft: 16,
     marginBottom: 12,
   },
   storiesList: {
-    paddingRight: 16,
+    paddingHorizontal: 16,
+    gap: 16,
   },
   storyContainer: {
     alignItems: 'center',
-    marginRight: 16,
-    width: 80,
+    width: 72,
   },
   storyRing: {
     width: 68,
@@ -330,83 +314,99 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
-  feedSection: {
+  feedContent: {
     padding: 16,
-    backgroundColor: '#fff',
   },
   postCard: {
-    marginBottom: 24,
-    borderRadius: 12,
     backgroundColor: '#fff',
+    borderRadius: 16,
+    marginBottom: 16,
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 3,
-    overflow: 'hidden',
   },
   postHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 12,
+    alignItems: 'center',
+    marginBottom: 12,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  postAvatar: {
+  avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
     marginRight: 12,
   },
-  postUsername: {
-    fontSize: 14,
+  userName: {
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
+    color: '#1a1a1a',
   },
   timestamp: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#666',
   },
-  favoriteButton: {
-    padding: 8,
-    borderRadius: 20,
+  content: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#1a1a1a',
+    lineHeight: 24,
+    marginBottom: 16,
+  },
+  eventCard: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  eventImage: {
+    width: '100%',
+    height: 160,
     backgroundColor: '#f0f0f0',
   },
-  favoriteButtonActive: {
-    backgroundColor: '#FF3B30',
-  },
-  postImage: {
-    width: '100%',
-    height: 300,
-    backgroundColor: '#f8f9fa',
-  },
-  postFooter: {
+  eventInfo: {
     padding: 12,
   },
-  topicBadge: {
-    backgroundColor: '#e3f2fd',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
+  eventTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#1a1a1a',
     marginBottom: 8,
   },
-  topicText: {
-    color: '#007AFF',
+  eventDetails: {
+    gap: 4,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  detailText: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
+    color: '#666',
   },
-  likes: {
+  postActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: 24,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  actionText: {
     fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 4,
+    fontFamily: 'Inter-Medium',
+    color: '#666',
   },
-  caption: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#4a4a4a',
-  },
-});
+}); 

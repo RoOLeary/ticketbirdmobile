@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, TextInput, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
-import { Camera, Bell, Globe, Lock, Moon, Share2, CreditCard, Plus, Mail } from 'lucide-react-native';
+import { Camera, Bell, Globe, Lock, Moon, Share2, CreditCard, Plus, Mail, Github, Instagram, Linkedin, AtSign } from 'lucide-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 interface PaymentMethod {
@@ -45,6 +45,14 @@ const TOPICS = [
   'Food', 'Fashion', 'Photography'
 ];
 
+interface SocialLink {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  username: string;
+  connected: boolean;
+}
+
 export default function Profile() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
@@ -60,6 +68,37 @@ export default function Profile() {
   const [emailUpdates, setEmailUpdates] = useState(user?.preferences?.emailUpdates || true);
   const [selectedTopics, setSelectedTopics] = useState<string[]>(user?.topics || []);
   const [hasChanges, setHasChanges] = useState(false);
+
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
+    {
+      id: 'bluesky',
+      name: 'Bluesky',
+      icon: <AtSign size={24} color="#1DA1F2" />,
+      username: '',
+      connected: false,
+    },
+    {
+      id: 'instagram',
+      name: 'Instagram',
+      icon: <Instagram size={24} color="#E4405F" />,
+      username: '',
+      connected: false,
+    },
+    {
+      id: 'linkedin',
+      name: 'LinkedIn',
+      icon: <Linkedin size={24} color="#0A66C2" />,
+      username: '',
+      connected: false,
+    },
+    {
+      id: 'github',
+      name: 'GitHub',
+      icon: <Github size={24} color="#333" />,
+      username: '',
+      connected: false,
+    },
+  ]);
 
   useEffect(() => {
     const hasNameChanged = name !== user?.displayName;
@@ -98,6 +137,24 @@ export default function Profile() {
         ? prev.filter(t => t !== topic)
         : [...prev, topic]
     );
+  };
+
+  const handleUsernameChange = (id: string, value: string) => {
+    setSocialLinks(prev =>
+      prev.map(link =>
+        link.id === id ? { ...link, username: value } : link
+      )
+    );
+    setHasChanges(true);
+  };
+
+  const handleToggleConnection = (id: string) => {
+    setSocialLinks(prev =>
+      prev.map(link =>
+        link.id === id ? { ...link, connected: !link.connected } : link
+      )
+    );
+    setHasChanges(true);
   };
 
   const renderPaymentMethod = (method: PaymentMethod) => (
@@ -175,6 +232,42 @@ export default function Profile() {
               numberOfLines={4}
             />
           </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Social Networks</Text>
+          <Text style={styles.sectionDescription}>
+            Connect your social media accounts to share your events and activities
+          </Text>
+
+          {socialLinks.map(link => (
+            <View key={link.id} style={styles.socialLink}>
+              <View style={styles.socialLinkHeader}>
+                <View style={styles.socialLinkInfo}>
+                  {link.icon}
+                  <Text style={styles.socialLinkName}>{link.name}</Text>
+                </View>
+                <Switch
+                  value={link.connected}
+                  onValueChange={() => handleToggleConnection(link.id)}
+                  trackColor={{ false: '#ddd', true: '#34C759' }}
+                />
+              </View>
+
+              {link.connected && (
+                <View style={styles.usernameInput}>
+                  <TextInput
+                    placeholder={`Enter your ${link.name} username`}
+                    value={link.username}
+                    onChangeText={(value) => handleUsernameChange(link.id, value)}
+                    style={styles.input}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+              )}
+            </View>
+          ))}
         </View>
 
         <View style={styles.section}>
@@ -541,5 +634,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#666',
+  },
+  socialLink: {
+    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  socialLinkHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  socialLinkInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  socialLinkName: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#1a1a1a',
+  },
+  usernameInput: {
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  sectionDescription: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    marginBottom: 24,
   },
 });

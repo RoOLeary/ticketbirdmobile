@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Tabs } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
-import { Chrome as Home, User, Compass, Newspaper, Search, Menu } from 'lucide-react-native';
+import { Chrome as Home, User, Telescope, Newspaper, Search, Menu, TicketCheck } from 'lucide-react-native';
 import SearchDialog from '@/components/SearchDialog';
 
 export default function AppLayout() {
@@ -46,20 +46,29 @@ export default function AppLayout() {
             tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
           }}
         />
+       
         <Tabs.Screen
-          name="feed"
+          name="explore"
           options={{
-            title: 'Feed',
-            headerTitle: 'Your Feed',
-            tabBarIcon: ({ color, size }) => <Newspaper size={size} color={color} />,
+            title: 'Explore',
+            headerTitle: 'Explore Events',
+            tabBarIcon: ({ color, size }) => <Telescope size={size} color={color} />,
           }}
         />
         <Tabs.Screen
-          name="discover"
+          name="tickets"
           options={{
-            title: 'Discover',
-            headerTitle: 'Discover',
-            tabBarIcon: ({ color, size }) => <Compass size={size} color={color} />,
+            title: 'My Tickets',
+            headerTitle: 'My Tickets',
+            tabBarIcon: ({ color, size }) => <TicketCheck size={size} color={color} />,
+          }}
+        />
+         <Tabs.Screen
+          name="feed"
+          options={{
+            title: 'Feed',
+            headerTitle: 'My Feed',
+            tabBarIcon: ({ color, size }) => <Newspaper size={size} color={color} />,
           }}
         />
         <Tabs.Screen

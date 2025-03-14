@@ -108,10 +108,10 @@ export default function Home() {
     },
     {
       icon: Compass,
-      title: 'Discover',
+      title: 'Explore',
       subtitle: 'Explore content',
       color: '#45B7D1',
-      onPress: () => router.push('/discover'),
+      onPress: () => router.push('/explore'),
     },
     {
       icon: Heart,

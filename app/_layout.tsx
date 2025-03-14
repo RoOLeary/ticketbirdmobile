@@ -6,9 +6,12 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
 import { Calendar, Chrome as Home, Heart, LogOut, CircleHelp as HelpCircle } from 'lucide-react-native';
+import { AuthProvider } from '@/lib/auth';
+import { DrawerContentComponentProps } from '@react-navigation/drawer';
 
 export default function RootLayout() {
   useFrameworkReady();
+
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
 
@@ -17,7 +20,7 @@ export default function RootLayout() {
     router.replace('/login');
   };
 
-  const CustomDrawerContent = ({ navigation }) => (
+  const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => (
     <View style={styles.drawerContainer}>
       <View style={styles.logoContainer}>
         <Image
@@ -82,44 +85,56 @@ export default function RootLayout() {
   );
 
   return (
-    <>
+    <AuthProvider>
       <Drawer
         screenOptions={{ 
           headerShown: true,
           headerTitle: '',
+          drawerStyle: {
+            backgroundColor: '#fff',
+          },
         }}
         drawerContent={(props) => <CustomDrawerContent {...props} />}
       >
         <Drawer.Screen 
           name="(app)" 
-          options={{ headerShown: false }}
+          options={{ 
+            headerShown: false,
+            drawerLabel: 'Home',
+          }}
         />
         <Drawer.Screen 
           name="events" 
-          options={{ headerTitle: 'My Events' }}
+          options={{ 
+            drawerLabel: 'My Events',
+            drawerIcon: ({ color, size }) => <Calendar size={size} color={color} />,
+          }}
         />
         <Drawer.Screen 
           name="favorites" 
-          options={{ headerTitle: 'My Favorites' }}
+          options={{ 
+            drawerLabel: 'Favorites',
+            drawerIcon: ({ color, size }) => <Heart size={size} color={color} />,
+          }}
         />
         <Drawer.Screen 
           name="(auth)" 
-          options={{ 
+          options={{
             headerShown: false,
             swipeEnabled: false 
-          }} 
+          }}
         />
         <Drawer.Screen 
           name="events/[id]" 
-          options={{ 
+          options={{
             headerShown: true,
             headerTitle: 'Event Details',
             swipeEnabled: false 
-          }} 
+          }}
         />
         <Drawer.Screen 
           name="+not-found" 
-          options={{ 
+          options={{
             headerShown: false,
             swipeEnabled: false 
           }} 
@@ -130,11 +145,11 @@ export default function RootLayout() {
             headerShown: true,
             headerTitle: 'Profile',
             swipeEnabled: false 
-          }} 
+          }}
         />
       </Drawer>
       <StatusBar style="auto" />
-    </>
+    </AuthProvider>
   );
 }
 

@@ -111,6 +111,7 @@ export default function Events() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
+        <Text style={styles.title}>My Events</Text>
         {EVENTS.map((event) => (
           <EventCard key={event.id} event={event} />
         ))}
@@ -126,6 +127,12 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+  },
+  title: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 24,
+    color: '#1a1a1a',
+    marginBottom: 20,
   },
   eventCard: {
     backgroundColor: '#fff',
