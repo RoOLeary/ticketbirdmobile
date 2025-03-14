@@ -11,6 +11,30 @@ export default function StackLayout() {
           headerShown: true,
         }}
       />
+      <Stack.Screen
+        name="event-landing"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="event-profile"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="speaker"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="attendee"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 } 

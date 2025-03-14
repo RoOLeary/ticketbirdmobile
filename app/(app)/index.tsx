@@ -318,6 +318,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#1a1a1a',
+    marginBottom: 8,
   },
   seeAllButton: {
     color: '#007AFF',

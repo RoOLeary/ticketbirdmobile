@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
-import { MapPin, Calendar, Clock, TicketCheck, Users, Info } from 'lucide-react-native';
+import { MapPin, Calendar, Clock, TicketCheck, Users, Info, ArrowRight } from 'lucide-react-native';
 
 // This would come from your API/database in a real app
 const DUMMY_TICKET = {
@@ -30,7 +30,12 @@ const DUMMY_TICKET = {
 
 export default function TicketDetail() {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
   const ticket = DUMMY_TICKET; // In real app, fetch ticket by id
+
+  const handleEventHubPress = () => {
+    router.push(`/event-landing/${id}`);
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -100,6 +105,11 @@ export default function TicketDetail() {
           />
           <Text style={styles.ticketNumber}>#{ticket.ticketNumber}</Text>
           <Text style={styles.qrHint}>Show this QR code at the event entrance</Text>
+
+          <TouchableOpacity style={styles.eventHubButton} onPress={handleEventHubPress}>
+            <Text style={styles.eventHubButtonText}>Take me to the event</Text>
+            <ArrowRight size={20} color="#fff" />
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -226,5 +236,20 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Inter-Bold',
     color: '#007AFF',
+  },
+  eventHubButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 24,
+    gap: 8,
+  },
+  eventHubButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
   },
 }); 

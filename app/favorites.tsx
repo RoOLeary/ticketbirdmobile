@@ -14,6 +14,7 @@ export default function FavoritesScreen() {
   };
 
   const handlePostPress = (postId: string) => {
+    // @ts-ignore
     router.push(`/posts/${postId}`);
   };
 
