@@ -1,6 +1,6 @@
 import React from 'react';
 import { Stack } from 'expo-router';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, Linking } from 'react-native';
 import { Drawer } from 'expo-router/drawer';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -42,6 +42,11 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
           style={styles.logo}
         />
         <Text style={styles.logoText}>Ticketbird</Text>
+        <TouchableOpacity 
+          onPress={() => Linking.openURL('https://busylittlepixels.com')}
+        >
+          <Text style={styles.creditText}>by busylittlepixels</Text>
+        </TouchableOpacity>
         {user?.displayName && (
           <Text style={styles.userEmail}>{user.displayName}</Text>
         )}
@@ -215,5 +220,11 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: '#FF3B30',
+  },
+  creditText: {
+    fontSize: 14,
+    color: '#007AFF',
+    marginTop: 4,
+    fontFamily: 'Inter-Regular',
   },
 });

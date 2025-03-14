@@ -40,9 +40,11 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
           style={styles.logo}
         />
         <Text style={styles.logoText}>Ticketbird</Text>
+        <Text style={styles.userEmail}>by busylittlepixels</Text>
         {user?.displayName && (
           <Text style={styles.userEmail}>{user.displayName}</Text>
         )}
+        
       </View>
       
       <View style={styles.drawerContent}>
