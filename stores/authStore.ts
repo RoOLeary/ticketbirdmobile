@@ -1,118 +1,117 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { storage } from './storage';
+import { persist } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface User {
-  email: string;
-  displayName?: string;
-  topics: string[];
-  preferences?: {
-    darkMode: boolean;
-    notifications: boolean;
-    emailUpdates: boolean;
-  };
-  lastLogin?: string;
+export interface SocialNetwork {
+  id: string;
+  username: string;
+  connected: boolean;
 }
 
-interface AuthState {
-  isAuthenticated: boolean;
+export interface UserPreferences {
+  darkMode: boolean;
+  notifications: boolean;
+  emailUpdates: boolean;
+  socialNetworks: SocialNetwork[];
+}
+
+export interface User {
+  id: string;
+  email: string;
+  displayName: string | null;
+  preferences: UserPreferences;
+  topics: string[];
+}
+
+export interface AuthStore {
   user: User | null;
-  isLoading: boolean;
-  error: string | null;
-  setUser: (user: User) => void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateDisplayName: (name: string) => void;
+  updatePreferences: (preferences: Partial<UserPreferences>) => void;
   updateTopics: (topics: string[]) => void;
-  updateDisplayName: (displayName: string) => void;
-  updatePreferences: (preferences: Partial<User['preferences']>) => void;
-  clearError: () => void;
+  updateSocialNetworks: (networks: SocialNetwork[]) => void;
 }
 
-export const useAuthStore = create<AuthState>()(
+export const useAuthStore = create<AuthStore>()(
   persist(
-    (set, get) => ({
-      isAuthenticated: false,
+    (set) => ({
       user: null,
-      isLoading: false,
-      error: null,
-      setUser: (user) => set({ user, isAuthenticated: true, error: null }),
-      login: async (email, password) => {
-        try {
-          set({ isLoading: true, error: null });
-          // In a real app, implement actual authentication here
-          // Simulating API call delay
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          set({ 
-            isAuthenticated: true,
-            user: {
-              email,
-              topics: [],
-              displayName: '',
-              preferences: {
-                darkMode: false,
-                notifications: true,
-                emailUpdates: true,
-              },
-              lastLogin: new Date().toISOString(),
+      login: async (email: string, password: string) => {
+        // Simulate login
+        set({
+          user: {
+            id: '1',
+            email,
+            displayName: null,
+            preferences: {
+              darkMode: false,
+              notifications: true,
+              emailUpdates: true,
+              socialNetworks: [],
             },
-            isLoading: false,
-          });
-        } catch (error) {
-          set({ 
-            error: error instanceof Error ? error.message : 'An error occurred',
-            isLoading: false,
-          });
-        }
+            topics: [],
+          },
+        });
       },
       logout: async () => {
-        try {
-          set({ isLoading: true });
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 500));
-          set({ isAuthenticated: false, user: null, error: null });
-        } finally {
-          set({ isLoading: false });
-        }
+        set({ user: null });
       },
-      updateTopics: (topics) => 
+      updateDisplayName: (name: string) => {
         set((state) => ({
-          user: state.user ? { ...state.user, topics } : null,
-          error: null,
-        })),
-      updateDisplayName: (displayName) =>
+          user: state.user
+            ? { ...state.user, displayName: name }
+            : null,
+        }));
+      },
+      updatePreferences: (preferences: Partial<UserPreferences>) => {
         set((state) => ({
-          user: state.user ? { ...state.user, displayName } : null,
-          error: null,
-        })),
-      updatePreferences: (preferences) =>
+          user: state.user
+            ? {
+                ...state.user,
+                preferences: { ...state.user.preferences, ...preferences },
+              }
+            : null,
+        }));
+      },
+      updateTopics: (topics: string[]) => {
+        set((state) => ({
+          user: state.user
+            ? { ...state.user, topics }
+            : null,
+        }));
+      },
+      updateSocialNetworks: (networks: SocialNetwork[]) => {
         set((state) => ({
           user: state.user
             ? {
                 ...state.user,
                 preferences: {
                   ...state.user.preferences,
-                  ...preferences,
+                  socialNetworks: networks,
                 },
               }
             : null,
-          error: null,
-        })),
-      clearError: () => set({ error: null }),
+        }));
+      },
     }),
     {
       name: 'auth-storage',
-      storage: createJSONStorage(() => storage),
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
+      storage: {
+        getItem: async (name) => {
+          const value = await AsyncStorage.getItem(name);
+          return value ? JSON.parse(value) : null;
+        },
+        setItem: async (name, value) => {
+          await AsyncStorage.setItem(name, JSON.stringify(value));
+        },
+        removeItem: async (name) => {
+          await AsyncStorage.removeItem(name);
+        },
+      },
     }
   )
 );
 
 // Optional: Add type-safe selector hooks
 export const useUser = () => useAuthStore((state) => state.user);
-export const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenticated);
-export const useAuthError = () => useAuthStore((state) => state.error);
-export const useIsLoading = () => useAuthStore((state) => state.isLoading);

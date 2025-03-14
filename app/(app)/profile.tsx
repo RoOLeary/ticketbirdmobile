@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, TextInput, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore, type AuthStore } from '@/stores/authStore';
 import { Camera, Bell, Globe, Lock, Moon, Share2, CreditCard, Plus, Mail, Github, Instagram, Linkedin, AtSign } from 'lucide-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
@@ -55,11 +55,12 @@ interface SocialLink {
 
 export default function Profile() {
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
-  const updateDisplayName = useAuthStore((state) => state.updateDisplayName);
-  const updatePreferences = useAuthStore((state) => state.updatePreferences);
-  const updateTopics = useAuthStore((state) => state.updateTopics);
+  const user = useAuthStore((state: AuthStore) => state.user);
+  const logout = useAuthStore((state: AuthStore) => state.logout);
+  const updateDisplayName = useAuthStore((state: AuthStore) => state.updateDisplayName);
+  const updatePreferences = useAuthStore((state: AuthStore) => state.updatePreferences);
+  const updateTopics = useAuthStore((state: AuthStore) => state.updateTopics);
+  const updateSocialNetworks = useAuthStore((state: AuthStore) => state.updateSocialNetworks);
 
   const [name, setName] = useState(user?.displayName || '');
   const [bio, setBio] = useState('');
@@ -74,33 +75,36 @@ export default function Profile() {
       id: 'bluesky',
       name: 'Bluesky',
       icon: <AtSign size={24} color="#1DA1F2" />,
-      username: '',
-      connected: false,
+      username: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'bluesky')?.username || '',
+      connected: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'bluesky')?.connected || false,
     },
     {
       id: 'instagram',
       name: 'Instagram',
       icon: <Instagram size={24} color="#E4405F" />,
-      username: '',
-      connected: false,
+      username: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'instagram')?.username || '',
+      connected: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'instagram')?.connected || false,
     },
     {
       id: 'linkedin',
       name: 'LinkedIn',
       icon: <Linkedin size={24} color="#0A66C2" />,
-      username: '',
-      connected: false,
+      username: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'linkedin')?.username || '',
+      connected: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'linkedin')?.connected || false,
     },
     {
       id: 'github',
       name: 'GitHub',
       icon: <Github size={24} color="#333" />,
-      username: '',
-      connected: false,
+      username: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'github')?.username || '',
+      connected: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'github')?.connected || false,
     },
   ]);
 
   useEffect(() => {
+    const hasSocialNetworksChanged = JSON.stringify(socialLinks.map(({ id, username, connected }) => ({ id, username, connected }))) !==
+      JSON.stringify(user?.preferences?.socialNetworks || []);
+    
     const hasNameChanged = name !== user?.displayName;
     const hasTopicsChanged = JSON.stringify(selectedTopics) !== JSON.stringify(user?.topics);
     const hasPreferencesChanged = 
@@ -108,8 +112,8 @@ export default function Profile() {
       notifications !== user?.preferences?.notifications ||
       emailUpdates !== user?.preferences?.emailUpdates;
     
-    setHasChanges(hasNameChanged || hasTopicsChanged || hasPreferencesChanged);
-  }, [name, selectedTopics, darkMode, notifications, emailUpdates, user]);
+    setHasChanges(hasNameChanged || hasTopicsChanged || hasPreferencesChanged || hasSocialNetworksChanged);
+  }, [name, selectedTopics, darkMode, notifications, emailUpdates, socialLinks, user]);
 
   const handleLogout = async () => {
     await logout();
@@ -128,6 +132,16 @@ export default function Profile() {
     });
 
     updateTopics(selectedTopics);
+    
+    // Save social networks
+    updateSocialNetworks(
+      socialLinks.map(({ id, username, connected }) => ({
+        id,
+        username,
+        connected,
+      }))
+    );
+
     setHasChanges(false);
   };
 
@@ -185,6 +199,21 @@ export default function Profile() {
       )}
     </TouchableOpacity>
   );
+
+  const getPlaceholder = (id: string): string => {
+    switch (id) {
+      case 'bluesky':
+        return '@username.bsky.social';
+      case 'instagram':
+        return '@username';
+      case 'linkedin':
+        return 'linkedin.com/in/username';
+      case 'github':
+        return '@username';
+      default:
+        return 'Enter username';
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -257,7 +286,7 @@ export default function Profile() {
               {link.connected && (
                 <View style={styles.usernameInput}>
                   <TextInput
-                    placeholder={`Enter your ${link.name} username`}
+                    placeholder={getPlaceholder(link.id)}
                     value={link.username}
                     onChangeText={(value) => handleUsernameChange(link.id, value)}
                     style={styles.input}
