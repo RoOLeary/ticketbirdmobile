@@ -68,14 +68,14 @@ export default function SpeakerProfile() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       <Stack.Screen 
         options={{
           headerShown: false
         }}
       />
       
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top, height: 56 + insets.top }]}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color="#007AFF" />
           <Text style={styles.backButtonText}>Back</Text>
@@ -90,7 +90,7 @@ export default function SpeakerProfile() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollContainer}>
+      <ScrollView style={[styles.scrollContainer, { marginTop: 56 + insets.top }]}>
         <View style={styles.profileHeader}>
           <Image 
             source={{ uri: speaker.image }}
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',

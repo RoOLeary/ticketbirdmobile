@@ -356,10 +356,9 @@ const styles = StyleSheet.create({
   },
   floatingHeader: {
     position: 'absolute',
-    top: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0, 0, 0, 0.1)',
     zIndex: 100,
@@ -385,7 +384,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 17,
-    fontFamily: 'Inter-SemiBold',
+    fontWeight: '600',
     color: '#007AFF',
     marginLeft: 4,
   },
@@ -434,7 +433,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 32,
-    fontFamily: 'Inter-Bold',
+    fontWeight: 'bold',
     color: '#fff',
     marginBottom: 16,
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
@@ -465,7 +464,7 @@ const styles = StyleSheet.create({
   },
   heroInfoText: {
     fontSize: 15,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
     color: '#fff',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
@@ -473,7 +472,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
   },
   image: {
     width: '100%',
@@ -483,16 +482,19 @@ const styles = StyleSheet.create({
   content: {
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 8,
+    paddingBottom: 32,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     marginTop: -20,
+    flex: 1,
+    minHeight: '100%',
   },
   infoCard: {
     backgroundColor: '#f8f9fa',
     borderRadius: 12,
     padding: 16,
-    marginTop: 0,
+    marginTop: 8,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -511,12 +513,12 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
   },
   description: {
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#333',
     lineHeight: 24,
   },
@@ -534,7 +536,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
     color: '#007AFF',
   },
   scheduleContainer: {
@@ -562,7 +564,7 @@ const styles = StyleSheet.create({
   },
   scheduleTimeText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
     color: '#666',
   },
   timelineDot: {
@@ -581,12 +583,12 @@ const styles = StyleSheet.create({
   },
   scheduleTitle: {
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontWeight: '600',
     marginBottom: 4,
   },
   scheduleSpeaker: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
     marginBottom: 4,
   },
@@ -597,7 +599,7 @@ const styles = StyleSheet.create({
   },
   scheduleLocationText: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
   },
   announcementsContainer: {
@@ -618,36 +620,43 @@ const styles = StyleSheet.create({
   },
   announcementTitle: {
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontWeight: '600',
     marginBottom: 4,
   },
   announcementMessage: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#333',
     marginBottom: 8,
   },
   announcementTime: {
     fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
   },
   tabsScroll: {
     marginTop: 0,
-    marginBottom: 12,
+    marginBottom: 0,
     backgroundColor: '#fff',
+    height: 40,
+    minHeight: 40,
+    maxHeight: 40,
   },
   tabs: {
     flexDirection: 'row',
     paddingHorizontal: 4,
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
+    height: 40,
+    alignItems: 'center',
   },
   tab: {
     paddingVertical: 8,
     paddingHorizontal: 16,
     marginHorizontal: 4,
     borderRadius: 6,
+    height: 32,
+    justifyContent: 'center',
   },
   tabActive: {
     backgroundColor: '#fff',
@@ -659,8 +668,9 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
     color: '#666',
+    textAlign: 'center',
   },
   tabTextActive: {
     color: '#007AFF',
@@ -692,19 +702,19 @@ const styles = StyleSheet.create({
   },
   speakerName: {
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontWeight: '600',
     marginBottom: 4,
     color: '#333',
   },
   speakerRole: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
     marginBottom: 2,
   },
   speakerCompany: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
   },
   favoriteButton: {
@@ -712,19 +722,19 @@ const styles = StyleSheet.create({
   },
   speakerBio: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#333',
     lineHeight: 20,
     marginBottom: 12,
   },
   speakerSessionsTitle: {
     fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
+    fontWeight: '600',
     marginBottom: 4,
   },
   speakerSession: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
     marginLeft: 8,
     marginBottom: 2,
@@ -748,7 +758,7 @@ const styles = StyleSheet.create({
   },
   sideEventTitle: {
     fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontWeight: '600',
     marginBottom: 12,
   },
   sideEventInfo: {
@@ -759,12 +769,12 @@ const styles = StyleSheet.create({
   },
   sideEventInfoText: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
   },
   sideEventDescription: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#333',
     lineHeight: 20,
     marginTop: 8,
@@ -787,7 +797,7 @@ const styles = StyleSheet.create({
   },
   networkingEventTitle: {
     fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontWeight: '600',
   },
   networkingEventAttendees: {
     flexDirection: 'row',
@@ -799,7 +809,7 @@ const styles = StyleSheet.create({
   },
   networkingEventAttendeesText: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#007AFF',
     marginLeft: 4,
   },
@@ -816,7 +826,7 @@ const styles = StyleSheet.create({
   },
   networkingEventInfoText: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
   },
   networkingEventLocation: {
@@ -827,12 +837,12 @@ const styles = StyleSheet.create({
   },
   networkingEventLocationText: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
   },
   networkingEventDescription: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#333',
     lineHeight: 20,
   },
@@ -850,13 +860,13 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontFamily: 'Inter-Bold',
+    fontWeight: 'bold',
     color: '#333',
     flex: 1,
   },
   searchModalTitle: {
     fontSize: 18,
-    fontFamily: 'Inter-Bold',
+    fontWeight: 'bold',
     color: '#333',
     flex: 1,
     textAlign: 'center',
@@ -877,13 +887,13 @@ const styles = StyleSheet.create({
   },
   speakerDetailName: {
     fontSize: 18,
-    fontFamily: 'Inter-Bold',
+    fontWeight: 'bold',
     marginBottom: 8,
     color: '#333',
   },
   speakerDetailRole: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
     marginBottom: 8,
   },
@@ -894,12 +904,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontWeight: '600',
     marginBottom: 8,
   },
   speakerDetailBio: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#333',
     lineHeight: 20,
   },
@@ -914,7 +924,7 @@ const styles = StyleSheet.create({
   },
   speakerActionText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
     color: '#007AFF',
   },
   sessionItem: {
@@ -925,7 +935,7 @@ const styles = StyleSheet.create({
   },
   sessionItemText: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#333',
   },
   talkDetailHeader: {
@@ -935,7 +945,7 @@ const styles = StyleSheet.create({
   },
   talkDetailTitle: {
     fontSize: 18,
-    fontFamily: 'Inter-Bold',
+    fontWeight: 'bold',
     marginRight: 16,
   },
   talkDetailTime: {
@@ -944,7 +954,7 @@ const styles = StyleSheet.create({
   },
   talkDetailTimeText: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
   },
   talkDetailLocation: {
@@ -954,7 +964,7 @@ const styles = StyleSheet.create({
   },
   talkDetailLocationText: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
   },
   talkDetailSpeaker: {
@@ -962,12 +972,12 @@ const styles = StyleSheet.create({
   },
   talkDetailSpeakerName: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#666',
   },
   talkDetailDescription: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '400',
     color: '#333',
     lineHeight: 20,
   },
@@ -982,7 +992,7 @@ const styles = StyleSheet.create({
   },
   talkActionText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
     color: '#007AFF',
   },
   attendeesContainer: {
@@ -997,7 +1007,7 @@ const styles = StyleSheet.create({
   },
   attendeesCount: {
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontWeight: '600',
     color: '#333',
   },
   attendeesActions: {
@@ -1302,6 +1312,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#666',
+  },
+  heroHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    width: '100%',
+  },
+  heroBackButton: {
+    padding: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 20,
   },
 });
 
@@ -2470,7 +2492,11 @@ const EventLanding: React.FC = () => {
   }, []);
 
   const handleBack = () => {
-    router.back();
+    // Navigate back to the ticket page
+    router.push({
+      pathname: "/ticket/[id]",
+      params: { id: id as string }
+    });
   };
 
   const navigateToCompanyProfile = (companyId: string) => {
@@ -2486,11 +2512,16 @@ const EventLanding: React.FC = () => {
             opacity: headerOpacity,
             transform: [{
               translateY: headerTranslateY
-            }]
+            }],
+            top: 0,
+            paddingTop: insets.top,
+            height: 56 + insets.top,
+            backgroundColor: '#fff',
+            zIndex: 100,
           }
         ]}
       >
-        <View style={styles.floatingHeaderContent}>
+        <View style={[styles.floatingHeaderContent, { height: 56 }]}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <ChevronLeft size={24} color="#007AFF" />
             <Text style={styles.backButtonText}>Back</Text>
@@ -2508,7 +2539,6 @@ const EventLanding: React.FC = () => {
 
       <Animated.ScrollView 
         style={styles.scrollContainer}
-        contentContainerStyle={{ paddingTop: 0 }}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true }
@@ -2526,6 +2556,14 @@ const EventLanding: React.FC = () => {
             />
             
             <View style={styles.heroTitleContainer}>
+              <View style={styles.heroHeader}>
+                <TouchableOpacity style={styles.heroBackButton} onPress={handleBack}>
+                  <ChevronLeft size={24} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.heroProfileButton} onPress={navigateToProfile}>
+                  <UserCircle size={28} color="#fff" />
+                </TouchableOpacity>
+              </View>
               <Text style={styles.heroTitle}>{event.title}</Text>
               
               <View style={styles.heroInfoContainer}>
@@ -2539,14 +2577,11 @@ const EventLanding: React.FC = () => {
                     <Text style={styles.heroInfoText}>{event.location}</Text>
                   </View>
                 </View>
-                <TouchableOpacity style={styles.heroProfileButton} onPress={navigateToProfile}>
-                  <UserCircle size={28} color="#fff" />
-                </TouchableOpacity>
               </View>
             </View>
           </View>
         </View>
-        
+
         <View style={styles.content}>
           <View style={styles.infoCard}>
             <View style={styles.infoHeader}>
