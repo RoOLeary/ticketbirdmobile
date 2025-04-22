@@ -4,6 +4,8 @@ import { Link, useRouter } from 'expo-router';
 import { Heart, MessageCircle, Share2, Calendar, MapPin } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useFavoritesStore } from '@/stores/useFavoritesStore';
+import { useFocusEffect } from '@react-navigation/native'
+import { useCallback } from 'react';
 
 interface Story {
   id: string;
@@ -121,9 +123,24 @@ const POSTS: Post[] = [
   },
 ];
 
+
+
 const StoryItem = ({ story }: { story: Story }) => {
   const router = useRouter();
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Screen is focused!');
   
+      // Do your stuff here (e.g., fetch data)
+  
+      return () => {
+        console.log('Screen is unfocused!');
+        // Clean up here (unsubscribe, clear timers, etc.)
+      };
+    }, [])
+  );
+
   return (
     <TouchableOpacity 
       style={styles.storyContainer} 

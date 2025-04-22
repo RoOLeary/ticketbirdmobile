@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Calendar, MapPin, Clock, Users, Star, ChevronRight } from 'lucide-react-native';
 import { useFavoritesStore } from '@/stores/favoritesStore';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native'
+
 
 interface Event {
   id: string;
@@ -58,7 +60,7 @@ const EventCard = ({ event }: { event: Event }) => {
   const router = useRouter();
   const { isFavorite } = useFavoritesStore();
   const isEventFavorite = isFavorite(`event-${event.id}`);
-
+  
   return (
     <Animated.View 
       entering={FadeIn.duration(400)}
@@ -110,6 +112,19 @@ const EventCard = ({ event }: { event: Event }) => {
 
 export default function Events() {
   const insets = useSafeAreaInsets();
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Events Screen is focused!');
+  
+      // Do your stuff here (e.g., fetch data)
+  
+      return () => {
+        console.log('Events Screen is unfocused!');
+        // Clean up here (unsubscribe, clear timers, etc.)
+      };
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
