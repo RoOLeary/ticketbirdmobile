@@ -1,119 +1,173 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
-import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
+import { usePreferencesStore } from '@/stores/usePreferencesStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { 
+  Laptop, 
+  Palette, 
+  Briefcase, 
+  TestTube2, 
+  Heart, 
+  Trophy, 
+  Music, 
+  Paintbrush, 
+  Plane, 
+  UtensilsCrossed, 
+  Shirt, 
+  Camera 
+} from 'lucide-react-native';
 
 const TOPICS = [
-  { id: 'tech', label: 'Technology', icon: '💻' },
-  { id: 'design', label: 'Design', icon: '🎨' },
-  { id: 'business', label: 'Business', icon: '💼' },
-  { id: 'science', label: 'Science', icon: '🔬' },
-  { id: 'health', label: 'Health', icon: '🏥' },
-  { id: 'sports', label: 'Sports', icon: '⚽' },
-  { id: 'music', label: 'Music', icon: '🎵' },
-  { id: 'art', label: 'Art', icon: '🎨' },
-  { id: 'travel', label: 'Travel', icon: '✈️' },
-  { id: 'food', label: 'Food', icon: '🍳' },
-  { id: 'fashion', label: 'Fashion', icon: '👗' },
-  { id: 'photography', label: 'Photography', icon: '📸' },
-  { id: 'gaming', label: 'Gaming', icon: '🎮' },
-  { id: 'movies', label: 'Movies', icon: '🎬' },
-  { id: 'books', label: 'Books', icon: '📚' },
-  { id: 'finance', label: 'Finance', icon: '💰' },
-  { id: 'education', label: 'Education', icon: '🎓' },
-  { id: 'fitness', label: 'Fitness', icon: '💪' }
+  { 
+    id: 'technology', 
+    label: 'Technology',
+    icon: (color: string) => <Laptop size={24} color={color} />,
+    color: '#007AFF'
+  },
+  { 
+    id: 'design', 
+    label: 'Design',
+    icon: (color: string) => <Palette size={24} color={color} />,
+    color: '#FF2D55'
+  },
+  { 
+    id: 'business', 
+    label: 'Business',
+    icon: (color: string) => <Briefcase size={24} color={color} />,
+    color: '#FF9500'
+  },
+  { 
+    id: 'science', 
+    label: 'Science',
+    icon: (color: string) => <TestTube2 size={24} color={color} />,
+    color: '#5856D6'
+  },
+  { 
+    id: 'health', 
+    label: 'Health',
+    icon: (color: string) => <Heart size={24} color={color} />,
+    color: '#FF3B30'
+  },
+  { 
+    id: 'sports', 
+    label: 'Sports',
+    icon: (color: string) => <Trophy size={24} color={color} />,
+    color: '#4CD964'
+  },
+  { 
+    id: 'music', 
+    label: 'Music',
+    icon: (color: string) => <Music size={24} color={color} />,
+    color: '#AF52DE'
+  },
+  { 
+    id: 'art', 
+    label: 'Art',
+    icon: (color: string) => <Paintbrush size={24} color={color} />,
+    color: '#FF2D55'
+  },
+  { 
+    id: 'travel', 
+    label: 'Travel',
+    icon: (color: string) => <Plane size={24} color={color} />,
+    color: '#5AC8FA'
+  },
+  { 
+    id: 'food', 
+    label: 'Food',
+    icon: (color: string) => <UtensilsCrossed size={24} color={color} />,
+    color: '#FF9500'
+  },
+  { 
+    id: 'fashion', 
+    label: 'Fashion',
+    icon: (color: string) => <Shirt size={24} color={color} />,
+    color: '#FF2D55'
+  },
+  { 
+    id: 'photography', 
+    label: 'Photography',
+    icon: (color: string) => <Camera size={24} color={color} />,
+    color: '#8E8E93'
+  },
 ];
 
 export default function Onboarding() {
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const router = useRouter();
-  const updateTopics = useAuthStore((state) => state.updateTopics);
+  const insets = useSafeAreaInsets();
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const { updateProfile, user } = useAuthStore();
+  const { setHasCompletedOnboarding } = usePreferencesStore();
 
-  const toggleTopic = (topic: string) => {
-    setSelectedTopics(prev => 
-      prev.includes(topic)
-        ? prev.filter(t => t !== topic)
-        : [...prev, topic]
+  const handleContinue = async () => {
+    if (selectedTopics.length > 0) {
+      await updateProfile({
+        ...user,
+        topics: selectedTopics.map(id => TOPICS.find(t => t.id === id)?.label || id)
+      });
+    }
+    await setHasCompletedOnboarding(true);
+    router.push('/(app)');
+  };
+
+  const toggleTopic = (topicId: string) => {
+    setSelectedTopics(prev =>
+      prev.includes(topicId)
+        ? prev.filter(id => id !== topicId)
+        : [...prev, topicId]
     );
   };
 
-  const handleComplete = () => {
-    updateTopics(selectedTopics.map(id => 
-      TOPICS.find(t => t.id === id)?.label || ''
-    ).filter(Boolean));
-    router.replace('/(app)');
-  };
-
   return (
-    <Animated.View 
-      entering={FadeIn}
-      style={styles.container}
-    >
-      <View style={styles.header}>
-        <Text style={styles.title}>What interests you?</Text>
-        <Text style={styles.subtitle}>
-          Choose topics you'd like to see in your feed. You can always change these later.
-        </Text>
-      </View>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
+          <Text style={styles.title}>What are you interested in?</Text>
+          <Text style={styles.subtitle}>
+            Select topics you're interested in to personalize your experience
+          </Text>
+        </Animated.View>
 
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
         <View style={styles.topicsGrid}>
-          {TOPICS.map((topic, index) => (
-            <Animated.View
-              key={topic.id}
-              entering={FadeInUp.delay(index * 50).springify()}
-            >
+          {TOPICS.map((topic) => {
+            const isSelected = selectedTopics.includes(topic.id);
+            return (
               <TouchableOpacity
+                key={topic.id}
                 style={[
-                  styles.topicChip,
-                  selectedTopics.includes(topic.id) && styles.topicChipSelected
+                  styles.topicButton,
+                  { backgroundColor: isSelected ? topic.color : '#f5f5f5' }
                 ]}
                 onPress={() => toggleTopic(topic.id)}
               >
-                <Text style={styles.topicIcon}>{topic.icon}</Text>
+                {topic.icon(isSelected ? '#fff' : '#666')}
                 <Text style={[
                   styles.topicText,
-                  selectedTopics.includes(topic.id) && styles.topicTextSelected
+                  isSelected && styles.topicTextSelected
                 ]}>
                   {topic.label}
                 </Text>
               </TouchableOpacity>
-            </Animated.View>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
-        <View style={styles.selectionInfo}>
-          <Text style={styles.selectionCount}>
-            {selectedTopics.length} selected
-          </Text>
-          <Text style={styles.selectionHint}>
-            Select at least 3 topics to continue
-          </Text>
-        </View>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
-          style={[
-            styles.continueButton,
-            selectedTopics.length < 3 && styles.continueButtonDisabled
-          ]}
-          onPress={handleComplete}
-          disabled={selectedTopics.length < 3}
+          style={[styles.continueButton, selectedTopics.length === 0 && styles.continueButtonDisabled]}
+          onPress={handleContinue}
+          disabled={selectedTopics.length === 0}
         >
-          <Text style={[
-            styles.continueButtonText,
-            selectedTopics.length < 3 && styles.continueButtonTextDisabled
-          ]}>
-            Continue
+          <Text style={[styles.continueButtonText, selectedTopics.length === 0 && styles.continueButtonTextDisabled]}>
+            {selectedTopics.length === 0 ? 'Select at least one topic' : 'Continue'}
           </Text>
         </TouchableOpacity>
       </View>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -122,94 +176,79 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+  },
   header: {
-    padding: 24,
-    paddingTop: 60,
-    backgroundColor: '#fff',
+    marginBottom: 32,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontFamily: 'Inter-Bold',
     marginBottom: 8,
-    color: '#1a1a1a',
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
     color: '#666',
+    textAlign: 'center',
     fontFamily: 'Inter-Regular',
-    lineHeight: 24,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
   },
   topicsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
     gap: 12,
+    justifyContent: 'center',
   },
-  topicChip: {
-    flexDirection: 'row',
+  topicButton: {
+    width: '45%',
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 100,
-    minWidth: 120,
-  },
-  topicChipSelected: {
-    backgroundColor: '#007AFF',
-  },
-  topicIcon: {
-    fontSize: 16,
-    marginRight: 8,
+    gap: 8,
   },
   topicText: {
     fontSize: 14,
-    color: '#333',
+    color: '#666',
     fontFamily: 'Inter-SemiBold',
   },
   topicTextSelected: {
     color: '#fff',
   },
   footer: {
-    padding: 24,
+    padding: 16,
     backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  selectionInfo: {
-    marginBottom: 16,
-  },
-  selectionCount: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: '#007AFF',
-    marginBottom: 4,
-  },
-  selectionHint: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    borderTopColor: '#f0f0f0',
   },
   continueButton: {
     backgroundColor: '#007AFF',
-    padding: 16,
+    paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   continueButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#E5E5EA',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   continueButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: 'Inter-SemiBold',
   },
   continueButtonTextDisabled: {
-    color: '#fff8',
+    color: '#8E8E93',
   },
 });

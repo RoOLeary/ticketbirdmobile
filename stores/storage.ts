@@ -1,7 +1,9 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
+// Web storage implementation using localStorage
 const webStorage = {
+  // Read data from localStorage
   getItem: async (key: string): Promise<string | null> => {
     try {
       return localStorage.getItem(key);
@@ -10,6 +12,8 @@ const webStorage = {
       return null;
     }
   },
+  
+  // Write data to localStorage
   setItem: async (key: string, value: string): Promise<void> => {
     try {
       localStorage.setItem(key, value);
@@ -17,6 +21,8 @@ const webStorage = {
       console.error('Error writing to storage:', error);
     }
   },
+  
+  // Remove data from localStorage
   removeItem: async (key: string): Promise<void> => {
     try {
       localStorage.removeItem(key);
@@ -26,7 +32,9 @@ const webStorage = {
   },
 };
 
+// Native storage implementation using Expo's SecureStore
 const nativeStorage = {
+  // Read data from SecureStore
   getItem: async (key: string): Promise<string | null> => {
     try {
       return await SecureStore.getItemAsync(key);
@@ -35,6 +43,8 @@ const nativeStorage = {
       return null;
     }
   },
+  
+  // Write data to SecureStore
   setItem: async (key: string, value: string): Promise<void> => {
     try {
       await SecureStore.setItemAsync(key, value);
@@ -42,6 +52,8 @@ const nativeStorage = {
       console.error('Error writing to storage:', error);
     }
   },
+  
+  // Remove data from SecureStore
   removeItem: async (key: string): Promise<void> => {
     try {
       await SecureStore.deleteItemAsync(key);
@@ -51,7 +63,8 @@ const nativeStorage = {
   },
 };
 
+// Export platform-specific storage implementation
 export const storage = Platform.select({
-  web: webStorage,
-  default: nativeStorage,
+  web: webStorage,      // Use localStorage for web platform
+  default: nativeStorage, // Use SecureStore for native platforms
 });

@@ -2,6 +2,7 @@ import { Drawer } from 'expo-router/drawer';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { Settings, Bell, CreditCard, Heart, CircleHelp as HelpCircle } from 'lucide-react-native';
+import React from 'react';
 
 export default function RootLayout() {
   useFrameworkReady();

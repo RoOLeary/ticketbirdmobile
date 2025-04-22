@@ -82,6 +82,15 @@ export default function EventDetails() {
   const router = useRouter();
   const event = EVENTS[id as string];
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
+
+  if (!event) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Event not found</Text>
+      </View>
+    );
+  }
+
   const isEventFavorite = isFavorite(`event-${event.id}`);
 
   const handleToggleFavorite = () => {
@@ -107,14 +116,6 @@ export default function EventDetails() {
   const handleBuyTickets = () => {
     Linking.openURL(event.ticketUrl);
   };
-
-  if (!event) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Event not found</Text>
-      </View>
-    );
-  }
 
   return (
     <ScrollView style={styles.container}>

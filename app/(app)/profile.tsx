@@ -1,57 +1,13 @@
-import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, TextInput, Switch } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, TextInput, Switch, ActivityIndicator, Alert } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
-import { useAuthStore, type AuthStore } from '@/stores/authStore';
-import { Camera, Bell, Globe, Lock, Moon, Share2, CreditCard, Plus, Mail, Github, Instagram, Linkedin, AtSign, ChevronLeft } from 'lucide-react-native';
+import { useAuthStore, type AuthStore, type User } from '@/stores/authStore';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { usePaymentsStore, type PaymentMethod } from '@/stores/paymentsStore';
+import { Camera, Moon, Mail, Github, Instagram, Linkedin, AtSign, CreditCard, Plus, Trash2, Bell, Globe, Lock } from 'lucide-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TicketbirdLogo } from '../components/TicketbirdLogo';
-
-interface PaymentMethod {
-  id: string;
-  type: 'card' | 'paypal' | 'mollie' | 'ideal';
-  label: string;
-  lastFour?: string;
-  expiryDate?: string;
-  isDefault: boolean;
-}
-
-const PAYMENT_METHODS: PaymentMethod[] = [
-  {
-    id: '1',
-    type: 'card',
-    label: 'Stripe',
-    lastFour: '4242',
-    expiryDate: '12/25',
-    isDefault: true,
-  },
-  {
-    id: '2',
-    type: 'card',
-    label: 'Mastercard',
-    lastFour: '8888',
-    expiryDate: '09/24',
-    isDefault: false,
-  },
-  {
-    id: '3',
-    type: 'paypal',
-    label: 'PayPal',
-    isDefault: false,
-  },
-  {
-    id: '4',
-    type: 'mollie',
-    label: 'Mollie',
-    isDefault: false,
-  },
-  {
-    id: '5',
-    type: 'ideal',
-    label: 'iDeal',
-    isDefault: false,
-  }
-];
+import { PaymentMethodModal } from '../components/PaymentMethodModal';
 
 const TOPICS = [
   'Technology', 'Design', 'Business', 'Science',
@@ -70,17 +26,14 @@ interface SocialLink {
 export default function Profile() {
   const router = useRouter();
   const user = useAuthStore((state: AuthStore) => state.user);
-  const logout = useAuthStore((state: AuthStore) => state.logout);
-  const updateDisplayName = useAuthStore((state: AuthStore) => state.updateDisplayName);
-  const updatePreferences = useAuthStore((state: AuthStore) => state.updatePreferences);
-  const updateTopics = useAuthStore((state: AuthStore) => state.updateTopics);
-  const updateSocialNetworks = useAuthStore((state: AuthStore) => state.updateSocialNetworks);
+  const { updateProfile, logout, isLoading } = useAuthStore();
+  const { settings, updateSettings } = useSettingsStore();
+  const { paymentMethods, isLoadingPayments, paymentsError, deletePaymentMethod, setDefaultPaymentMethod } = usePaymentsStore();
+  const insets = useSafeAreaInsets();
 
+  // Form state
   const [name, setName] = useState(user?.displayName || '');
-  const [bio, setBio] = useState('');
-  const [darkMode, setDarkMode] = useState<boolean>(user?.preferences?.darkMode || false);
-  const [notifications, setNotifications] = useState<boolean>(user?.preferences?.notifications || true);
-  const [emailUpdates, setEmailUpdates] = useState<boolean>(user?.preferences?.emailUpdates || true);
+  const [bio, setBio] = useState(user?.bio || '');
   const [selectedTopics, setSelectedTopics] = useState<string[]>(user?.topics || []);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -89,76 +42,72 @@ export default function Profile() {
       id: 'bluesky',
       name: 'Bluesky',
       icon: <AtSign size={24} color="#1DA1F2" />,
-      username: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'bluesky')?.username || '',
-      connected: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'bluesky')?.connected || false,
+      username: user?.socialNetworks?.find(n => n.id === 'bluesky')?.username || '',
+      connected: user?.socialNetworks?.find(n => n.id === 'bluesky')?.connected || false,
     },
     {
       id: 'instagram',
       name: 'Instagram',
       icon: <Instagram size={24} color="#E4405F" />,
-      username: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'instagram')?.username || '',
-      connected: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'instagram')?.connected || false,
+      username: user?.socialNetworks?.find(n => n.id === 'instagram')?.username || '',
+      connected: user?.socialNetworks?.find(n => n.id === 'instagram')?.connected || false,
     },
     {
       id: 'linkedin',
       name: 'LinkedIn',
       icon: <Linkedin size={24} color="#0A66C2" />,
-      username: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'linkedin')?.username || '',
-      connected: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'linkedin')?.connected || false,
+      username: user?.socialNetworks?.find(n => n.id === 'linkedin')?.username || '',
+      connected: user?.socialNetworks?.find(n => n.id === 'linkedin')?.connected || false,
     },
     {
       id: 'github',
       name: 'GitHub',
       icon: <Github size={24} color="#333" />,
-      username: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'github')?.username || '',
-      connected: user?.preferences?.socialNetworks?.find((n: { id: string }) => n.id === 'github')?.connected || false,
+      username: user?.socialNetworks?.find(n => n.id === 'github')?.username || '',
+      connected: user?.socialNetworks?.find(n => n.id === 'github')?.connected || false,
     },
   ]);
 
-  const insets = useSafeAreaInsets();
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | undefined>(undefined);
+  const [isPaymentMethodModalVisible, setIsPaymentMethodModalVisible] = useState(false);
 
   useEffect(() => {
     const hasSocialNetworksChanged = JSON.stringify(socialLinks.map(({ id, username, connected }) => ({ id, username, connected }))) !==
-      JSON.stringify(user?.preferences?.socialNetworks || []);
+      JSON.stringify(user?.socialNetworks || []);
     
     const hasNameChanged = name !== user?.displayName;
+    const hasBioChanged = bio !== user?.bio;
     const hasTopicsChanged = JSON.stringify(selectedTopics) !== JSON.stringify(user?.topics);
-    const hasPreferencesChanged = 
-      darkMode !== user?.preferences?.darkMode ||
-      notifications !== user?.preferences?.notifications ||
-      emailUpdates !== user?.preferences?.emailUpdates;
     
-    setHasChanges(hasNameChanged || hasTopicsChanged || hasPreferencesChanged || hasSocialNetworksChanged);
-  }, [name, selectedTopics, darkMode, notifications, emailUpdates, socialLinks, user]);
+    setHasChanges(
+      hasNameChanged || 
+      hasBioChanged || 
+      hasTopicsChanged || 
+      hasSocialNetworksChanged
+    );
+  }, [name, bio, selectedTopics, socialLinks, user]);
+
+  const handleSave = async () => {
+    try {
+      await updateProfile({
+        displayName: name,
+        bio,
+        topics: selectedTopics,
+        socialNetworks: socialLinks.map(({ id, username, connected }) => ({
+          id,
+          username,
+          connected,
+        })),
+      });
+      setHasChanges(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save profile changes');
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
     router.replace('/login');
-  };
-
-  const handleSave = () => {
-    if (name !== user?.displayName) {
-      updateDisplayName(name);
-    }
-
-    updatePreferences({
-      darkMode,
-      notifications,
-      emailUpdates,
-    });
-
-    updateTopics(selectedTopics);
-    
-    // Save social networks
-    updateSocialNetworks(
-      socialLinks.map(({ id, username, connected }) => ({
-        id,
-        username,
-        connected,
-      }))
-    );
-
-    setHasChanges(false);
   };
 
   const toggleTopic = (topic: string) => {
@@ -175,7 +124,6 @@ export default function Profile() {
         link.id === id ? { ...link, username: value } : link
       )
     );
-    setHasChanges(true);
   };
 
   const handleToggleConnection = (id: string) => {
@@ -184,11 +132,51 @@ export default function Profile() {
         link.id === id ? { ...link, connected: !link.connected } : link
       )
     );
-    setHasChanges(true);
+  };
+
+  const handleAddPaymentMethod = () => {
+    setSelectedPaymentMethod(undefined);
+    setIsPaymentMethodModalVisible(true);
+  };
+
+  const handleEditPaymentMethod = (method: PaymentMethod) => {
+    setSelectedPaymentMethod(method);
+    setIsPaymentMethodModalVisible(true);
+  };
+
+  const handleClosePaymentMethodModal = () => {
+    setIsPaymentMethodModalVisible(false);
+    setSelectedPaymentMethod(undefined);
+  };
+
+  const handleDeletePaymentMethod = async (id: string) => {
+    Alert.alert(
+      'Delete Payment Method',
+      'Are you sure you want to delete this payment method?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deletePaymentMethod(id),
+        },
+      ]
+    );
+  };
+
+  const handleSetDefaultPaymentMethod = (id: string) => {
+    setDefaultPaymentMethod(id);
   };
 
   const renderPaymentMethod = (method: PaymentMethod) => (
-    <TouchableOpacity key={method.id} style={styles.paymentMethod}>
+    <TouchableOpacity 
+      key={method.id} 
+      style={styles.paymentMethod}
+      onPress={() => handleEditPaymentMethod(method)}
+    >
       <View style={styles.paymentMethodIcon}>
         {method.type === 'card' ? (
           <CreditCard size={24} color="#007AFF" />
@@ -212,38 +200,35 @@ export default function Profile() {
       <View style={styles.paymentMethodInfo}>
         <Text style={styles.paymentMethodLabel}>
           {method.label}
-          {method.lastFour && ` •••• ${method.lastFour}`}
+          {method.last_four && ` •••• ${method.last_four}`}
         </Text>
-        {method.expiryDate && (
-          <Text style={styles.paymentMethodExpiry}>Expires {method.expiryDate}</Text>
+        {method.expiry_date && (
+          <Text style={styles.paymentMethodExpiry}>Expires {method.expiry_date}</Text>
         )}
       </View>
-      {method.isDefault && (
-        <View style={styles.defaultBadge}>
-          <Text style={styles.defaultBadgeText}>Default</Text>
-        </View>
-      )}
+      <View style={styles.paymentMethodActions}>
+        {!method.is_default && (
+          <TouchableOpacity
+            style={styles.defaultButton}
+            onPress={() => handleSetDefaultPaymentMethod(method.id)}
+          >
+            <Text style={styles.defaultButtonText}>Make Default</Text>
+          </TouchableOpacity>
+        )}
+        {method.is_default && (
+          <View style={styles.defaultBadge}>
+            <Text style={styles.defaultBadgeText}>Default</Text>
+          </View>
+        )}
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDeletePaymentMethod(method.id)}
+        >
+          <Trash2 size={20} color="#FF3B30" />
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
-
-  const getPlaceholder = (id: string): string => {
-    switch (id) {
-      case 'bluesky':
-        return '@username.bsky.social';
-      case 'instagram':
-        return '@username';
-      case 'linkedin':
-        return 'linkedin.com/in/username';
-      case 'github':
-        return '@username';
-      default:
-        return 'Enter username';
-    }
-  };
-
-  const handleBack = () => {
-    router.back();
-  };
 
   return (
     <View style={[styles.container]}>
@@ -313,42 +298,6 @@ export default function Profile() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Social Networks</Text>
-            <Text style={styles.sectionDescription}>
-              Connect your social media accounts to share your events and activities
-            </Text>
-
-            {socialLinks.map(link => (
-              <View key={link.id} style={styles.socialLink}>
-                <View style={styles.socialLinkHeader}>
-                  <View style={styles.socialLinkInfo}>
-                    {link.icon}
-                    <Text style={styles.socialLinkName}>{link.name}</Text>
-                  </View>
-                  <Switch
-                    value={link.connected}
-                    onValueChange={() => handleToggleConnection(link.id)}
-                    trackColor={{ false: '#ddd', true: '#34C759' }}
-                  />
-                </View>
-
-                {link.connected && (
-                  <View style={styles.usernameInput}>
-                    <TextInput
-                      placeholder={getPlaceholder(link.id)}
-                      value={link.username}
-                      onChangeText={(value) => handleUsernameChange(link.id, value)}
-                      style={styles.input}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                    />
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Your Interests</Text>
             <View style={styles.topicsGrid}>
               {TOPICS.map((topic) => (
@@ -372,13 +321,60 @@ export default function Profile() {
           </View>
 
           <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Social Networks</Text>
+            <Text style={styles.sectionDescription}>
+              Connect your social media accounts to share your events and activities
+            </Text>
+
+            {socialLinks.map(link => (
+              <View key={link.id} style={styles.socialLink}>
+                <View style={styles.socialLinkHeader}>
+                  <View style={styles.socialLinkInfo}>
+                    {link.icon}
+                    <Text style={styles.socialLinkName}>{link.name}</Text>
+                  </View>
+                  <Switch
+                    value={link.connected}
+                    onValueChange={() => handleToggleConnection(link.id)}
+                    trackColor={{ false: '#ddd', true: '#34C759' }}
+                  />
+                </View>
+
+                {link.connected && (
+                  <View style={styles.usernameInput}>
+                    <TextInput
+                      placeholder={`@username`}
+                      value={link.username}
+                      onChangeText={(value) => handleUsernameChange(link.id, value)}
+                      style={styles.input}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Payment Methods</Text>
             <View style={styles.paymentMethods}>
-              {PAYMENT_METHODS.map(renderPaymentMethod)}
-              <TouchableOpacity style={styles.addPaymentMethod}>
-                <Plus size={24} color="#007AFF" />
-                <Text style={styles.addPaymentMethodText}>Add Payment Method</Text>
-              </TouchableOpacity>
+              {isLoadingPayments ? (
+                <ActivityIndicator size="large" color="#007AFF" />
+              ) : paymentsError ? (
+                <Text style={styles.errorText}>{paymentsError}</Text>
+              ) : (
+                <>
+                  {paymentMethods.map(renderPaymentMethod)}
+                  <TouchableOpacity 
+                    style={styles.addPaymentMethod}
+                    onPress={handleAddPaymentMethod}
+                  >
+                    <Plus size={24} color="#007AFF" />
+                    <Text style={styles.addPaymentMethodText}>Add Payment Method</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </View>
 
@@ -394,8 +390,8 @@ export default function Profile() {
                 <Text style={styles.settingDescription}>Switch to dark theme</Text>
               </View>
               <Switch
-                value={darkMode}
-                onValueChange={setDarkMode}
+                value={settings.darkMode}
+                onValueChange={(value) => updateSettings({ darkMode: value })}
                 trackColor={{ false: '#ddd', true: '#007AFF' }}
               />
             </View>
@@ -405,12 +401,12 @@ export default function Profile() {
                 <Bell size={20} color="#007AFF" />
               </View>
               <View style={styles.settingContent}>
-                <Text style={styles.settingTitle}>Push Notifications</Text>
+                <Text style={styles.settingTitle}>Enable Notifications</Text>
                 <Text style={styles.settingDescription}>Receive push notifications</Text>
               </View>
               <Switch
-                value={notifications}
-                onValueChange={setNotifications}
+                value={settings.enableNotifications}
+                onValueChange={(value) => updateSettings({ enableNotifications: value })}
                 trackColor={{ false: '#ddd', true: '#007AFF' }}
               />
             </View>
@@ -420,40 +416,84 @@ export default function Profile() {
                 <Globe size={20} color="#007AFF" />
               </View>
               <View style={styles.settingContent}>
-                <Text style={styles.settingTitle}>Email Updates</Text>
-                <Text style={styles.settingDescription}>Receive email newsletters</Text>
+                <Text style={styles.settingTitle}>Public Profile</Text>
+                <Text style={styles.settingDescription}>Make your profile visible to others</Text>
               </View>
               <Switch
-                value={emailUpdates}
-                onValueChange={setEmailUpdates}
+                value={settings.enablePublicProfile}
+                onValueChange={(value) => updateSettings({ enablePublicProfile: value })}
+                trackColor={{ false: '#ddd', true: '#007AFF' }}
+              />
+            </View>
+
+            <View style={styles.settingRow}>
+              <View style={styles.settingIcon}>
+                <Lock size={20} color="#007AFF" />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingTitle}>Two-Factor Authentication</Text>
+                <Text style={styles.settingDescription}>Enable 2FA for enhanced security</Text>
+              </View>
+              <Switch
+                value={settings.enable2FA}
+                onValueChange={(value) => {
+                  if (value) {
+                    // TODO: Implement 2FA setup flow
+                    Alert.alert(
+                      'Set Up 2FA',
+                      'Would you like to set up two-factor authentication now?',
+                      [
+                        {
+                          text: 'Cancel',
+                          style: 'cancel',
+                          onPress: () => updateSettings({ enable2FA: false }),
+                        },
+                        {
+                          text: 'Set Up',
+                          style: 'default',
+                          onPress: () => {
+                            // TODO: Navigate to 2FA setup screen
+                            updateSettings({ enable2FA: true });
+                          },
+                        },
+                      ]
+                    );
+                  } else {
+                    Alert.alert(
+                      'Disable 2FA',
+                      'Are you sure you want to disable two-factor authentication? This will make your account less secure.',
+                      [
+                        {
+                          text: 'Cancel',
+                          style: 'cancel',
+                        },
+                        {
+                          text: 'Disable',
+                          style: 'destructive',
+                          onPress: () => updateSettings({ enable2FA: false }),
+                        },
+                      ]
+                    );
+                  }
+                }}
                 trackColor={{ false: '#ddd', true: '#007AFF' }}
               />
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Security</Text>
-            
-            <TouchableOpacity style={styles.menuItem}>
-              <Lock size={20} color="#007AFF" />
-              <Text style={styles.menuText}>Privacy Settings</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Share2 size={20} color="#007AFF" />
-              <Text style={styles.menuText}>Share Profile</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.section}>
             <TouchableOpacity 
               style={[styles.saveButton, !hasChanges && styles.saveButtonDisabled]}
               onPress={handleSave}
-              disabled={!hasChanges}
+              disabled={!hasChanges || isLoading}
             >
-              <Text style={[styles.saveButtonText, !hasChanges && styles.saveButtonTextDisabled]}>
-                {hasChanges ? 'Save Changes' : 'No Changes to Save'}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={[styles.saveButtonText, !hasChanges && styles.saveButtonTextDisabled]}>
+                  {hasChanges ? 'Save Changes' : 'No Changes to Save'}
+                </Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -462,6 +502,12 @@ export default function Profile() {
           </View>
         </Animated.View>
       </ScrollView>
+
+      <PaymentMethodModal
+        visible={isPaymentMethodModalVisible}
+        onClose={handleClosePaymentMethodModal}
+        existingMethod={selectedPaymentMethod}
+      />
     </View>
   );
 }
@@ -510,11 +556,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#fff',
-  },
-  email: {
-    fontSize: 16,
-    color: '#666',
-    fontFamily: 'Inter-Regular',
   },
   section: {
     backgroundColor: '#fff',
@@ -569,72 +610,6 @@ const styles = StyleSheet.create({
   topicTextSelected: {
     color: '#fff',
   },
-  paymentMethods: {
-    marginTop: 8,
-  },
-  paymentMethod: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  paymentMethodIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  paypalIcon: {
-    width: 24,
-    height: 24,
-    resizeMode: 'contain',
-  },
-  paymentMethodInfo: {
-    flex: 1,
-  },
-  paymentMethodLabel: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 4,
-  },
-  paymentMethodExpiry: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-  },
-  defaultBadge: {
-    backgroundColor: '#e3f2fd',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  defaultBadgeText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    color: '#007AFF',
-  },
-  addPaymentMethod: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    borderStyle: 'dashed',
-  },
-  addPaymentMethodText: {
-    marginLeft: 8,
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#007AFF',
-  },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -662,18 +637,6 @@ const styles = StyleSheet.create({
   settingDescription: {
     fontSize: 14,
     color: '#666',
-    fontFamily: 'Inter-Regular',
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  menuText: {
-    marginLeft: 12,
-    fontSize: 16,
     fontFamily: 'Inter-Regular',
   },
   logoutButton: {
@@ -762,5 +725,97 @@ const styles = StyleSheet.create({
   },
   saveButtonTextDisabled: {
     color: '#8E8E93',
+  },
+  paymentMethods: {
+    marginTop: 8,
+  },
+  paymentMethod: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  paymentMethodIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  paypalIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+  },
+  paymentMethodInfo: {
+    flex: 1,
+  },
+  paymentMethodLabel: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: 4,
+  },
+  paymentMethodExpiry: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+  },
+  defaultBadge: {
+    backgroundColor: '#e3f2fd',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  defaultBadgeText: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    color: '#007AFF',
+  },
+  addPaymentMethod: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    borderStyle: 'dashed',
+  },
+  addPaymentMethodText: {
+    marginLeft: 8,
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#007AFF',
+  },
+  deleteButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  defaultButton: {
+    backgroundColor: '#E5E5EA',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  defaultButtonText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#007AFF',
+  },
+  paymentMethodActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#FF3B30',
+    textAlign: 'center',
+    marginVertical: 16,
+    fontFamily: 'Inter-Regular',
   },
 });

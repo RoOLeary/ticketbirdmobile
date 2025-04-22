@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
+import { usePreferencesStore } from '@/stores/usePreferencesStore';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
 import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 
@@ -11,12 +12,17 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
+  const hasCompletedOnboarding = usePreferencesStore((state) => state.hasCompletedOnboarding);
 
   const handleLogin = async () => {
     try {
       setIsLoading(true);
       await login(email, password);
-      router.replace('/onboarding');
+      if (hasCompletedOnboarding) {
+        router.replace('/(app)');
+      } else {
+        router.replace('/onboarding');
+      }
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
