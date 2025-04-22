@@ -80,7 +80,12 @@ export const useAuthStore = create<AuthStore>()(
               displayName: 'Danger Ro',
               bio: '',
               topics: [],
-              socialNetworks: [],
+              socialNetworks: [
+                { id: 'bluesky', username: '', connected: false },
+                { id: 'instagram', username: '', connected: false },
+                { id: 'linkedin', username: '', connected: false },
+                { id: 'github', username: '', connected: false }
+              ],
             },
           });
         } catch (error) {

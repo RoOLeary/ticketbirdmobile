@@ -113,7 +113,6 @@ export function PaymentMethodForm({ onClose, existingMethod }: PaymentMethodForm
           label: 'Credit Card',
           last_four,
           expiry_date: expiryDate,
-          is_default: false,
           card_holder: cardHolder,
           billing_address: {
             street,

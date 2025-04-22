@@ -4,7 +4,7 @@ import { useRouter, Stack } from 'expo-router';
 import { useAuthStore, type AuthStore, type User } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { usePaymentsStore, type PaymentMethod } from '@/stores/paymentsStore';
-import { Camera, Moon, Mail, Github, Instagram, Linkedin, AtSign, CreditCard, Plus, Trash2, Bell, Globe, Lock } from 'lucide-react-native';
+import { Camera, Moon, Mail, Github, Instagram, Linkedin, AtSign, CreditCard, Plus, Trash2, Bell, Globe, Lock, QrCode } from 'lucide-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PaymentMethodModal } from '../components/PaymentMethodModal';
@@ -25,57 +25,76 @@ interface SocialLink {
 
 export default function Profile() {
   const router = useRouter();
-  const user = useAuthStore((state: AuthStore) => state.user);
-  const { updateProfile, logout, isLoading } = useAuthStore();
+  const { user, updateProfile, logout } = useAuthStore();
   const { settings, updateSettings } = useSettingsStore();
   const { paymentMethods, isLoadingPayments, paymentsError, deletePaymentMethod, setDefaultPaymentMethod } = usePaymentsStore();
   const insets = useSafeAreaInsets();
 
-  // Form state
-  const [name, setName] = useState(user?.displayName || '');
+  const [isLoading, setIsLoading] = useState(true);
+  const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [bio, setBio] = useState(user?.bio || '');
   const [selectedTopics, setSelectedTopics] = useState<string[]>(user?.topics || []);
-  const [hasChanges, setHasChanges] = useState(false);
-
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
-    {
-      id: 'bluesky',
-      name: 'Bluesky',
-      icon: <AtSign size={24} color="#1DA1F2" />,
-      username: user?.socialNetworks?.find(n => n.id === 'bluesky')?.username || '',
-      connected: user?.socialNetworks?.find(n => n.id === 'bluesky')?.connected || false,
-    },
-    {
-      id: 'instagram',
-      name: 'Instagram',
-      icon: <Instagram size={24} color="#E4405F" />,
-      username: user?.socialNetworks?.find(n => n.id === 'instagram')?.username || '',
-      connected: user?.socialNetworks?.find(n => n.id === 'instagram')?.connected || false,
-    },
-    {
-      id: 'linkedin',
-      name: 'LinkedIn',
-      icon: <Linkedin size={24} color="#0A66C2" />,
-      username: user?.socialNetworks?.find(n => n.id === 'linkedin')?.username || '',
-      connected: user?.socialNetworks?.find(n => n.id === 'linkedin')?.connected || false,
-    },
-    {
-      id: 'github',
-      name: 'GitHub',
-      icon: <Github size={24} color="#333" />,
-      username: user?.socialNetworks?.find(n => n.id === 'github')?.username || '',
-      connected: user?.socialNetworks?.find(n => n.id === 'github')?.connected || false,
-    },
+    { id: 'bluesky', name: 'Bluesky', icon: <AtSign size={24} color="#1DA1F2" />, username: '', connected: false },
+    { id: 'instagram', name: 'Instagram', icon: <Instagram size={24} color="#E4405F" />, username: '', connected: false },
+    { id: 'linkedin', name: 'LinkedIn', icon: <Linkedin size={24} color="#0A66C2" />, username: '', connected: false },
+    { id: 'github', name: 'GitHub', icon: <Github size={24} color="#333" />, username: '', connected: false }
   ]);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | undefined>(undefined);
   const [isPaymentMethodModalVisible, setIsPaymentMethodModalVisible] = useState(false);
 
   useEffect(() => {
+    if (user) {
+      setDisplayName(user.displayName || '');
+      setBio(user.bio || '');
+      if (user.socialNetworks) {
+        const updatedSocialLinks: SocialLink[] = user.socialNetworks.map(network => {
+          let name = '';
+          let icon: React.ReactNode = null;
+
+          switch (network.id) {
+            case 'bluesky':
+              name = 'Bluesky';
+              icon = <AtSign size={24} color="#1DA1F2" />;
+              break;
+            case 'instagram':
+              name = 'Instagram';
+              icon = <Instagram size={24} color="#E4405F" />;
+              break;
+            case 'linkedin':
+              name = 'LinkedIn';
+              icon = <Linkedin size={24} color="#0A66C2" />;
+              break;
+            case 'github':
+              name = 'GitHub';
+              icon = <Github size={24} color="#333" />;
+              break;
+            default:
+              name = network.id.charAt(0).toUpperCase() + network.id.slice(1);
+              icon = <Globe size={24} color="#666" />;
+          }
+
+          return {
+            id: network.id,
+            name,
+            icon,
+            username: network.username || '',
+            connected: network.connected || false
+          };
+        });
+        setSocialLinks(updatedSocialLinks);
+      }
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
     const hasSocialNetworksChanged = JSON.stringify(socialLinks.map(({ id, username, connected }) => ({ id, username, connected }))) !==
       JSON.stringify(user?.socialNetworks || []);
     
-    const hasNameChanged = name !== user?.displayName;
+    const hasNameChanged = displayName !== user?.displayName;
     const hasBioChanged = bio !== user?.bio;
     const hasTopicsChanged = JSON.stringify(selectedTopics) !== JSON.stringify(user?.topics);
     
@@ -85,12 +104,12 @@ export default function Profile() {
       hasTopicsChanged || 
       hasSocialNetworksChanged
     );
-  }, [name, bio, selectedTopics, socialLinks, user]);
+  }, [displayName, bio, selectedTopics, socialLinks, user]);
 
   const handleSave = async () => {
     try {
       await updateProfile({
-        displayName: name,
+        displayName,
         bio,
         topics: selectedTopics,
         socialNetworks: socialLinks.map(({ id, username, connected }) => ({
@@ -266,6 +285,7 @@ export default function Profile() {
             </View>
           </View>
 
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Profile Information</Text>
             <View style={styles.inputGroup}>
@@ -279,8 +299,8 @@ export default function Profile() {
               <Text style={styles.label}>Display Name</Text>
               <TextInput
                 style={styles.input}
-                value={name}
-                onChangeText={setName}
+                value={displayName}
+                onChangeText={setDisplayName}
                 placeholder="Enter your display name"
               />
             </View>
@@ -296,6 +316,27 @@ export default function Profile() {
               />
             </View>
           </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Contacts</Text>
+            <View style={styles.contactButtons}>
+              <TouchableOpacity 
+                style={[styles.scanButton, styles.contactButton]}
+                onPress={() => router.push('/(modals)/scan' as any)}
+              >
+                <Camera size={24} color="#007AFF" />
+                <Text style={styles.scanButtonText}>Scan Contact</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.scanButton, styles.contactButton]}
+                onPress={() => router.push('/(modals)/mycode' as any)}
+              >
+                <QrCode size={24} color="#007AFF" />
+                <Text style={styles.scanButtonText}>My Code</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Your Interests</Text>
@@ -343,7 +384,7 @@ export default function Profile() {
                 {link.connected && (
                   <View style={styles.usernameInput}>
                     <TextInput
-                      placeholder={`@username`}
+                      placeholder={`Enter your ${link.name} username`}
                       value={link.username}
                       onChangeText={(value) => handleUsernameChange(link.id, value)}
                       style={styles.input}
@@ -562,6 +603,14 @@ const styles = StyleSheet.create({
     padding: 16,
     marginTop: 8,
   },
+  contactsSection: {
+    backgroundColor: '#fff',
+    padding: 16,
+    marginTop: 8,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
@@ -667,15 +716,14 @@ const styles = StyleSheet.create({
   },
   socialLink: {
     marginBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#f8f9fa',
     borderRadius: 12,
-    overflow: 'hidden',
+    padding: 16,
   },
   socialLinkHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
   },
   socialLinkInfo: {
     flexDirection: 'row',
@@ -688,8 +736,7 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
   },
   usernameInput: {
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: 12,
   },
   sectionDescription: {
     fontSize: 14,
@@ -817,5 +864,42 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 16,
     fontFamily: 'Inter-Regular',
+  },
+  scanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f7ff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    gap: 8,
+  },
+  contactButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  contactButton: {
+    flex: 1,
+    marginBottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scanButtonText: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontFamily: 'Inter-SemiBold',
+    textAlign: 'center',
+  },
+  myCodeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f7ff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    gap: 8,
   },
 });

@@ -23,7 +23,7 @@ import {
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
-const QuickAccessTile = ({ icon: Icon, title, subtitle, onPress, color }) => {
+const QuickAccessTile = ({ icon: Icon, title, subtitle, onPress, color }: { icon: any, title: string, subtitle: string, onPress: () => void, color: string }) => {
   const scale = useSharedValue(1);
   
   const animatedStyle = useAnimatedStyle(() => {
@@ -56,7 +56,7 @@ const QuickAccessTile = ({ icon: Icon, title, subtitle, onPress, color }) => {
   );
 };
 
-const TrendingTopic = ({ title, image, followers }) => (
+const TrendingTopic = ({ title, image, followers }: { title: string, image: string, followers: string }) => (
   <View style={styles.trendingTopic}>
     <Image source={{ uri: image }} style={styles.trendingImage} />
     <View style={styles.trendingContent}>
@@ -66,7 +66,7 @@ const TrendingTopic = ({ title, image, followers }) => (
   </View>
 );
 
-const UpcomingEvent = ({ event, onPress }) => (
+const UpcomingEvent = ({ event, onPress }: { event: any, onPress: () => void }) => (
   <TouchableOpacity style={styles.eventCard} onPress={onPress}>
     <Image source={{ uri: event.image }} style={styles.eventImage} />
     <View style={styles.eventContent}>
@@ -198,7 +198,7 @@ export default function Home() {
         <Text style={styles.sectionTitle}>Quick Access</Text>
         <View style={styles.quickAccessGrid}>
           {QUICK_ACCESS.map((item, index) => (
-            <QuickAccessTile key={index} {...item} index={index} />
+            <QuickAccessTile key={index} {...item} />
           ))}
         </View>
       </View>
@@ -284,10 +284,11 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     backgroundColor: '#f8f9fa',
     borderRadius: 12,
     padding: 16,
+    gap: 4
   },
   statItem: {
     alignItems: 'center',

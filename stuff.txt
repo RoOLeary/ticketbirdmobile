@@ -1,0 +1,42 @@
+# Commands to clear storage in React Native
+# Uncomment the relevant command in your code to clear storage
+
+# Clear AsyncStorage (all keys)
+# await AsyncStorage.clear();
+
+# Clear specific AsyncStorage keys
+# await AsyncStorage.removeItem('auth-storage');  # Clear auth state
+# await AsyncStorage.removeItem('darkMode');      # Clear dark mode preference
+# await AsyncStorage.removeItem('hasCompletedOnboarding');  # Clear onboarding status
+
+# Clear SecureStore (if using on native platforms)
+# await SecureStore.deleteItemAsync('auth-storage');
+# await SecureStore.deleteItemAsync('darkMode');
+# await SecureStore.deleteItemAsync('hasCompletedOnboarding');
+
+# Example usage in a component:
+/*
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+
+const clearStorage = async () => {
+  try {
+    // Clear all AsyncStorage
+    await AsyncStorage.clear();
+    
+    // Or clear specific keys
+    // await AsyncStorage.removeItem('auth-storage');
+    // await AsyncStorage.removeItem('hasCompletedOnboarding');
+    
+    // If using SecureStore
+    // await SecureStore.deleteItemAsync('auth-storage');
+    
+    console.log('Storage cleared successfully');
+  } catch (error) {
+    console.error('Error clearing storage:', error);
+  }
+};
+*/
+
+# Note: After clearing storage, you may need to restart the app
+# to ensure all state is properly reset 
