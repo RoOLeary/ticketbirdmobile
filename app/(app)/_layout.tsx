@@ -5,6 +5,18 @@ import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Home, User, Telescope, Newspaper, Search, Menu, TicketCheck } from 'lucide-react-native';
 import SearchDialog from '@/components/SearchDialog';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PostHogProvider } from 'posthog-react-native';
+
+export function MyApp() {
+    return (
+        <PostHogProvider apiKey="phc_F9jRNr97mnaco40w0Dm7Bm5Cob0Kpkh4LfvnWBoXsQ5" options={{
+            host: "https://eu.i.posthog.com",
+            
+        }}>
+            <RestOfApp />
+        </PostHogProvider>
+    )
+}
 
 const HeaderTitle = () => (
   <View style={styles.headerTitle}>

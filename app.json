@@ -17,7 +17,9 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      [ "expo-router"],
+      [
+        "expo-router"
+      ],
       [
         "expo-camera",
         {
@@ -25,7 +27,8 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true

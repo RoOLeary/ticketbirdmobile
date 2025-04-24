@@ -9,6 +9,7 @@ import { Home, Calendar, Ticket, Heart, User as Profile, LogOut, CircleHelp as H
 import { AuthProvider } from '@/lib/auth';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { PostHogProvider } from 'posthog-react-native';
 
 type AppRoute = 
   | '/'
@@ -119,6 +120,9 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
 
 export default function RootLayout() {
   return (
+    <PostHogProvider apiKey="phc_F9jRNr97mnaco40w0Dm7Bm5Cob0Kpkh4LfvnWBoXsQ5" options={{
+      host: "https://eu.i.posthog.com",
+    }}>
     <AuthProvider>
       <SafeAreaProvider>
         <StatusBar style="dark" />
@@ -150,6 +154,7 @@ export default function RootLayout() {
         </Drawer>
       </SafeAreaProvider>
     </AuthProvider>
+    </PostHogProvider>
   );
 }
 
