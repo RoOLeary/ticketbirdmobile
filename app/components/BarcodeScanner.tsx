@@ -4,7 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import useOfflineQueueStore from '../stores/offlineQueueStore';
+import useOfflineQueueStore from '@/stores/offlineQueueStore';
 import NetInfo from '@react-native-community/netinfo';
 
 interface BarcodeScanResult {

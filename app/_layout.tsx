@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, Linking } from 'react-native';
 import { Drawer } from 'expo-router/drawer';
@@ -10,6 +10,8 @@ import { AuthProvider } from '@/lib/auth';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PostHogProvider } from 'posthog-react-native';
+import NetInfo from '@react-native-community/netinfo';
+import useOfflineQueueStore from '@/stores/offlineQueueStore';
 
 type AppRoute = 
   | '/'
@@ -119,6 +121,29 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
 };
 
 export default function RootLayout() {
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      const offlineQueue = useOfflineQueueStore.getState();
+      const isConnected = state.isConnected && state.isInternetReachable;
+      
+      console.log('Network Status:', {
+        isConnected,
+        type: state.type,
+        isInternetReachable: state.isInternetReachable,
+        details: state.details
+      });
+      
+      offlineQueue.setOnlineStatus(!!isConnected);
+      
+      if (isConnected) {
+        // Process queued operations when coming back online
+        offlineQueue.processQueue();
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <PostHogProvider apiKey="phc_F9jRNr97mnaco40w0Dm7Bm5Cob0Kpkh4LfvnWBoXsQ5" options={{
       host: "https://eu.i.posthog.com",

@@ -1,11 +1,15 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import NetInfo from '@react-native-community/netinfo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface QueuedOperation {
   id: string;
   type: 'SCAN_QR' | 'OTHER_OPERATION';
-  payload: any;
+  payload: {
+    type: string;
+    data: string;
+    [key: string]: any;
+  };
   timestamp: number;
 }
 
@@ -48,8 +52,10 @@ const useOfflineQueueStore = create<OfflineQueueState>()(
             // Process each operation based on type
             switch (operation.type) {
               case 'SCAN_QR':
-                // Implement your QR scanning sync logic here
-                await processQRScan(operation.payload);
+                // TODO: Implement your actual QR processing logic here
+                console.log('Processing queued QR scan:', operation.payload);
+                // Simulate processing delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 break;
               // Add other operation types as needed
             }
