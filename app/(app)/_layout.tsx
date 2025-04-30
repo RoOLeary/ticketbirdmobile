@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import { TouchableOpacity, StyleSheet, View, Platform, Text } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Home, User, Telescope, Newspaper, Search, Menu, TicketCheck } from 'lucide-react-native';
-import SearchDialog from '@/components/SearchDialog';
+import SearchDialog from '@/app/components/SearchDialog';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PostHogProvider } from 'posthog-react-native';
 

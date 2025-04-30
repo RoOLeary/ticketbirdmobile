@@ -1,9 +1,11 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState, useEffect } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useOfflineQueueStore from '../stores/offlineQueueStore';
+import NetInfo from '@react-native-community/netinfo';
 
 interface BarcodeScanResult {
   type: string;
@@ -15,6 +17,24 @@ export default function BarcodeScanner() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [hasScanned, setHasScanned] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  const offlineQueue = useOfflineQueueStore();
+
+  useEffect(() => {
+    // Check initial connection status
+    NetInfo.fetch().then(state => {
+      setIsOnline(!!(state.isConnected && state.isInternetReachable));
+    });
+
+    // Subscribe to network status updates
+    const unsubscribe = NetInfo.addEventListener(state => {
+      const isConnected = !!(state.isConnected && state.isInternetReachable);
+      setIsOnline(isConnected);
+      offlineQueue.setOnlineStatus(isConnected);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   if (!permission) {
     return <View />;
@@ -34,14 +54,36 @@ export default function BarcodeScanner() {
     );
   }
 
-  const handleBarCodeScanned = ({ type, data }: BarcodeScanResult) => {
+  const handleBarCodeScanned = async ({ type, data }: BarcodeScanResult) => {
     if (hasScanned) return; // Prevent multiple scans
     setHasScanned(true);
     
-    // TODO: Handle the scanned data (e.g., parse contact information)
-    console.log(`Bar code with type ${type} and data ${data} has been scanned!`);
-    alert(`Contact scanned: ${data}`);
-    router.back();
+    try {
+      if (!isOnline) {
+        // Queue the scan for later processing
+        offlineQueue.addOperation({
+          type: 'SCAN_QR',
+          payload: { type, data },
+        });
+        
+        Alert.alert(
+          'Offline Mode',
+          'QR code has been saved and will be processed when you\'re back online.',
+          [{ text: 'OK', onPress: () => router.back() }]
+        );
+        return;
+      }
+
+      // Online processing
+      // TODO: Implement your actual QR processing logic here
+      console.log(`Bar code with type ${type} and data ${data} has been scanned!`);
+      alert(`Contact scanned: ${data}`);
+      router.back();
+    } catch (error) {
+      console.error('Error processing QR scan:', error);
+      Alert.alert('Error', 'Failed to process QR code. Please try again.');
+      setHasScanned(false);
+    }
   };
 
   return (
@@ -56,6 +98,12 @@ export default function BarcodeScanner() {
         <Text style={styles.headerTitle}>Scan QR Code</Text>
         <View style={styles.closeButton} />
       </View>
+      
+      {!isOnline && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineText}>You're offline - scans will be queued</Text>
+        </View>
+      )}
       
       <View style={styles.cameraContainer}>
         <CameraView
@@ -147,5 +195,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  offlineBanner: {
+    backgroundColor: '#FF3B30',
+    padding: 8,
+    alignItems: 'center',
+  },
+  offlineText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
   },
 }); 
