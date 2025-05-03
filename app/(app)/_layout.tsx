@@ -6,6 +6,7 @@ import { Home, User, Telescope, Newspaper, Search, Menu, TicketCheck } from 'luc
 import SearchDialog from '@/app/components/SearchDialog';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PostHogProvider } from 'posthog-react-native';
+import { TicketbirdLogo } from '@/app/components/TicketbirdLogo';
 
 export function MyApp() {
     return (
@@ -20,7 +21,10 @@ export function MyApp() {
 
 const HeaderTitle = () => (
   <View style={styles.headerTitle}>
-    <Text style={styles.headerText}>Ticketbird</Text>
+    <View style={{flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+      <TicketbirdLogo size={22} color="#000" />
+      <Text style={styles.headerText}>Ticketbird</Text>
+    </View>
   </View>
 );
 

@@ -12,6 +12,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PostHogProvider } from 'posthog-react-native';
 import NetInfo from '@react-native-community/netinfo';
 import useOfflineQueueStore from '@/stores/offlineQueueStore';
+import { TicketbirdLogo } from './components/TicketbirdLogo';
 
 type AppRoute = 
   | '/'
@@ -44,7 +45,10 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
           source={{ uri: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=200&h=200&fit=crop' }}
           style={styles.logo}
         />
-        <Text style={styles.logoText}>Ticketbird</Text>
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <TicketbirdLogo size={24} color="#000" />
+          <Text style={styles.logoText}>Ticketbird</Text>
+        </View>
         <TouchableOpacity 
           onPress={() => Linking.openURL('https://busylittlepixels.com')}
         >

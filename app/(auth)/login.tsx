@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, StatusBar, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
 import { usePreferencesStore } from '@/stores/usePreferencesStore';
@@ -54,7 +54,7 @@ export default function Login() {
             entering={FadeIn.delay(200)}
             style={styles.header}
           >   
-            <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <TicketbirdLogo size={48} color="#fff" /><Text style={styles.title}>Ticketbird</Text>
             </View>
             <Text style={styles.subtitle}>Your gateway to amazing events</Text>
@@ -122,6 +122,17 @@ export default function Login() {
               </TouchableOpacity>
             </View>
           </Animated.View>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              Powered by{' '}
+              <Text 
+                style={{fontFamily: 'Inter-Bold', color: '#fff'}}
+                onPress={() => Linking.openURL('https://busylittlepixels.com')}
+              >
+                busy<Text style={{color: '#FF3B30'}}>little</Text>pixels
+              </Text>
+            </Text>
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -256,12 +267,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 24,
-    gap: 8,
   },
   footerText: {
-    color: '#333',
+    color: '#fff',
     fontSize: 14,
     fontFamily: 'Inter-Regular',
+    opacity: 0.9,
   },
   signUpText: {
     color: '#000',
