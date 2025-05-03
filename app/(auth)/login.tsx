@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
 import { usePreferencesStore } from '@/stores/usePreferencesStore';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
-import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
+import Animated, { FadeIn, SlideInUp } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
+import { TicketbirdLogo } from '../components/TicketbirdLogo';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -31,95 +33,109 @@ export default function Login() {
   };
 
   return (
-    <View style={styles.container}>
-      <Animated.View 
-        entering={FadeIn.delay(200)}
-        style={styles.header}
-      >
-        <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=400&fit=crop' }}
-          style={styles.headerImage}
-        />
-        <View style={styles.overlay} />
-        <Text style={styles.title}>Ticketbird</Text>
-        <Text style={styles.subtitle}>Your gateway to amazing events</Text>
-      </Animated.View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <StatusBar barStyle="light-content" />
+      
+      {/* Full-height background image with overlay */}
+      <Image 
+        source={{ uri: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80' }}
+        style={styles.backgroundImage}
+      />
+      <View style={styles.overlay} />
+      
+      {/* Content container */}
+      <View style={styles.contentContainer}>
+        <View style={styles.centerContainer}>
+          {/* Header section with branding */}
+          <Animated.View 
+            entering={FadeIn.delay(200)}
+            style={styles.header}
+          >   
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+              <TicketbirdLogo size={48} color="#fff" /><Text style={styles.title}>Ticketbird</Text>
+            </View>
+            <Text style={styles.subtitle}>Your gateway to amazing events</Text>
+          </Animated.View>
 
-      <Animated.View 
-        entering={SlideInDown.delay(400)}
-        style={styles.formContainer}
-      >
-        <View style={styles.inputContainer}>
-          <Mail size={20} color="#666" />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            placeholderTextColor="#999"
-          />
+          {/* Form container with glass effect */}
+          <Animated.View 
+            entering={SlideInUp.delay(400).springify()}
+            style={styles.formContainer}
+          >
+            <View style={styles.inputContainer}>
+              <Mail size={20} color="#666" />
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Lock size={20} color="#666" />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            <TouchableOpacity style={styles.forgotPassword}>
+              <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[
+                styles.buttonContainer,
+                (!email || !password || isLoading) && styles.buttonDisabled
+              ]} 
+              onPress={handleLogin}
+              disabled={!email || !password || isLoading}
+            >
+              <LinearGradient
+                colors={['#333', '#000']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.button}
+              >
+                <Text style={styles.buttonText}>
+                  {isLoading ? 'Signing in...' : 'Sign in'}
+                </Text>
+                {!isLoading && <ArrowRight size={20} color="#fff" />}
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Don't have an account?</Text>
+              <TouchableOpacity>
+                <Text style={styles.signUpText}>Sign up</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
         </View>
-
-        <View style={styles.inputContainer}>
-          <Lock size={20} color="#666" />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            placeholderTextColor="#999"
-          />
-        </View>
-
-        <TouchableOpacity style={styles.forgotPassword}>
-          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[
-            styles.button,
-            (!email || !password || isLoading) && styles.buttonDisabled
-          ]} 
-          onPress={handleLogin}
-          disabled={!email || !password || isLoading}
-        >
-          <Text style={styles.buttonText}>
-            {isLoading ? 'Signing in...' : 'Sign in'}
-          </Text>
-          {!isLoading && <ArrowRight size={20} color="#fff" />}
-        </TouchableOpacity>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account?</Text>
-          <TouchableOpacity>
-            <Text style={styles.signUpText}>Sign up</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
-  header: {
-    height: '40%',
-    position: 'relative',
-    justifyContent: 'flex-end',
-    padding: 24,
-  },
-  headerImage: {
+  backgroundImage: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    width: '100%',
+    height: '100%',
   },
   overlay: {
     position: 'absolute',
@@ -129,31 +145,65 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+  },
+  centerContainer: {
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
   title: {
-    fontSize: 40,
+    fontSize: 42,
     fontFamily: 'Inter-Bold',
     color: '#fff',
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 18,
     fontFamily: 'Inter-Regular',
     color: '#fff',
     opacity: 0.9,
+    textAlign: 'center',
   },
   formContainer: {
-    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    borderRadius: 24,
     padding: 24,
-    paddingTop: 40,
+    paddingTop: 32,
+    paddingBottom: 32,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 5,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
     borderRadius: 12,
     paddingHorizontal: 16,
     marginBottom: 16,
     height: 56,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   input: {
     flex: 1,
@@ -167,25 +217,38 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   forgotPasswordText: {
-    color: '#007AFF',
+    color: '#000',
     fontSize: 14,
     fontFamily: 'Inter-Regular',
   },
-  button: {
-    backgroundColor: '#007AFF',
+  buttonContainer: {
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  button: {
+    height: '100%',
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
+    paddingHorizontal: 16,
   },
   buttonDisabled: {
-    backgroundColor: '#ccc',
+    opacity: 0.5,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: 'Inter-SemiBold',
   },
   footer: {
@@ -196,12 +259,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   footerText: {
-    color: '#666',
+    color: '#333',
     fontSize: 14,
     fontFamily: 'Inter-Regular',
   },
   signUpText: {
-    color: '#007AFF',
+    color: '#000',
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
   },
