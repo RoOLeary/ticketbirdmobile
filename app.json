@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ticketbird",
-    "slug": "ticketbird",
+    "name": "flutterpass",
+    "slug": "flutterpass",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

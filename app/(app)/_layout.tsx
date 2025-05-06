@@ -23,7 +23,7 @@ const HeaderTitle = () => (
   <View style={styles.headerTitle}>
     <View style={{flexDirection: 'row', alignItems: 'center', gap: 2 }}>
       <TicketbirdLogo size={22} color="#000" />
-      <Text style={styles.headerText}>Ticketbird</Text>
+      <Text style={styles.headerText}>FlutterPass</Text>
     </View>
   </View>
 );

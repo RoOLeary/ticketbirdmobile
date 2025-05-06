@@ -55,7 +55,7 @@ export default function Login() {
             style={styles.header}
           >   
             <View style={{flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <TicketbirdLogo size={48} color="#fff" /><Text style={styles.title}>Ticketbird</Text>
+              <TicketbirdLogo size={48} color="#fff" /><Text style={styles.title}>FlutterPass</Text>
             </View>
             <Text style={styles.subtitle}>Your gateway to amazing events</Text>
           </Animated.View>

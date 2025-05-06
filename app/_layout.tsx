@@ -47,7 +47,7 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
         />
         <View style={{flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <TicketbirdLogo size={24} color="#000" />
-          <Text style={styles.logoText}>Ticketbird</Text>
+          <Text style={styles.logoText}>FlutterPass</Text>
         </View>
         <TouchableOpacity 
           onPress={() => Linking.openURL('https://busylittlepixels.com')}

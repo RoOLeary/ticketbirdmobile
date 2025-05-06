@@ -43,7 +43,7 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
         <View style={styles.logoTextContainer}>
           <View style={styles.logoWithText}>
             <TicketbirdLogo size={24} color="#007AFF" />
-            <Text style={styles.logoText}>Ticketbird</Text>
+            <Text style={styles.logoText}>FlutterPass</Text>
           </View>
           <Text style={styles.userEmail}>by busylittlepixels</Text>
         </View>
