@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Pressable } from 'react-native';
-import { useFavoritesStore, FavoriteEvent, FavoritePost } from '@/stores/useFavoritesStore';
+import { useFavoritesStore, FavoriteItem } from '@/stores/favoritesStore';
 import { Calendar, MapPin, Heart, MessageCircle, Share2 } from 'lucide-react-native';
 import { useRouter, Stack } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -166,7 +166,7 @@ export default function FavoritesScreen() {
                 >
                   <View style={styles.postHeader}>
                     <View style={styles.userInfo}>
-                      <Image source={{ uri: post.user.avatar }} style={styles.avatar} />
+                      <Image source={{ uri: post.user.avatar_url }} style={styles.avatar} />
                       <View>
                         <Text style={styles.userName}>{post.user.name}</Text>
                         <Text style={styles.timestamp}>{post.timestamp}</Text>

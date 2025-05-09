@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, RefreshCon
 import { Link, useRouter } from 'expo-router';
 import { Heart, MessageCircle, Share2, Calendar, MapPin } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useFavoritesStore } from '@/stores/useFavoritesStore';
+import { useFavoritesStore } from '@/stores/favoritesStore';
 import { useFocusEffect } from '@react-navigation/native'
 import { useCallback } from 'react';
 

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, TextInput, Switch, ActivityIndicator, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, TextInput, Switch, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { useAuthStore, type AuthStore, type User } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -8,6 +8,7 @@ import { Camera, Moon, Mail, Github, Instagram, Linkedin, AtSign, CreditCard, Pl
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PaymentMethodModal } from '../components/PaymentMethodModal';
+import { supabase } from '@/lib/supabase';
 
 const TOPICS = [
   'Technology', 'Design', 'Business', 'Science',
@@ -25,14 +26,16 @@ interface SocialLink {
 
 export default function Profile() {
   const router = useRouter();
-  const { user, updateProfile, logout } = useAuthStore();
+  const { user, updateProfile, logout, reloadUserProfile } = useAuthStore();
   const { settings, updateSettings } = useSettingsStore();
   const { paymentMethods, isLoadingPayments, paymentsError, deletePaymentMethod, setDefaultPaymentMethod } = usePaymentsStore();
   const insets = useSafeAreaInsets();
 
   const [isLoading, setIsLoading] = useState(true);
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
+  const [fullName, setFullName] = useState(user?.full_name || '');
   const [bio, setBio] = useState(user?.bio || '');
+  const [company, setCompany] = useState(user?.company || '');
+  const [position, setPosition] = useState(user?.position || '');
   const [selectedTopics, setSelectedTopics] = useState<string[]>(user?.topics || []);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
     { id: 'bluesky', name: 'Bluesky', icon: <AtSign size={24} color="#1DA1F2" />, username: '', connected: false },
@@ -44,72 +47,80 @@ export default function Profile() {
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | undefined>(undefined);
   const [isPaymentMethodModalVisible, setIsPaymentMethodModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
+  console.log("RENDER - socialLinks:", socialLinks);
+  console.log("RENDER - user?.socialNetworks:", user?.socialNetworks);
 
   useEffect(() => {
     if (user) {
-      setDisplayName(user.displayName || '');
+      setFullName(user.full_name || '');
       setBio(user.bio || '');
-      if (user.socialNetworks) {
-        const updatedSocialLinks: SocialLink[] = user.socialNetworks.map(network => {
-          let name = '';
-          let icon: React.ReactNode = null;
-
-          switch (network.id) {
-            case 'bluesky':
-              name = 'Bluesky';
-              icon = <AtSign size={24} color="#1DA1F2" />;
-              break;
-            case 'instagram':
-              name = 'Instagram';
-              icon = <Instagram size={24} color="#E4405F" />;
-              break;
-            case 'linkedin':
-              name = 'LinkedIn';
-              icon = <Linkedin size={24} color="#0A66C2" />;
-              break;
-            case 'github':
-              name = 'GitHub';
-              icon = <Github size={24} color="#333" />;
-              break;
-            default:
-              name = network.id.charAt(0).toUpperCase() + network.id.slice(1);
-              icon = <Globe size={24} color="#666" />;
+      setCompany(user.company || '');
+      setPosition(user.position || '');
+      
+      // Default social links to ensure they always appear
+      const defaultSocialLinks: SocialLink[] = [
+        { id: 'bluesky', name: 'Bluesky', icon: <AtSign size={24} color="#1DA1F2" />, username: '', connected: false },
+        { id: 'instagram', name: 'Instagram', icon: <Instagram size={24} color="#E4405F" />, username: '', connected: false },
+        { id: 'linkedin', name: 'LinkedIn', icon: <Linkedin size={24} color="#0A66C2" />, username: '', connected: false },
+        { id: 'github', name: 'GitHub', icon: <Github size={24} color="#333" />, username: '', connected: false }
+      ];
+      
+      // If user has social networks, use them to update defaults
+      if (user.socialNetworks && user.socialNetworks.length > 0) {
+        const updatedSocialLinks = defaultSocialLinks.map(defaultLink => {
+          // Find matching network from user data
+          const userNetwork = user.socialNetworks.find(network => network.id === defaultLink.id);
+          if (userNetwork) {
+            return {
+              ...defaultLink,
+              username: userNetwork.username || '',
+              connected: userNetwork.connected || false
+            };
           }
-
-          return {
-            id: network.id,
-            name,
-            icon,
-            username: network.username || '',
-            connected: network.connected || false
-          };
+          return defaultLink;
         });
         setSocialLinks(updatedSocialLinks);
+      } else {
+        // Use defaults if no social networks exist
+        setSocialLinks(defaultSocialLinks);
       }
+      
       setIsLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
+    console.log("USER CHANGED - user:", user);
+    console.log("USER CHANGED - socialNetworks:", user?.socialNetworks);
+    
     const hasSocialNetworksChanged = JSON.stringify(socialLinks.map(({ id, username, connected }) => ({ id, username, connected }))) !==
       JSON.stringify(user?.socialNetworks || []);
     
-    const hasNameChanged = displayName !== user?.displayName;
+    const hasNameChanged = fullName !== user?.full_name;
     const hasBioChanged = bio !== user?.bio;
     const hasTopicsChanged = JSON.stringify(selectedTopics) !== JSON.stringify(user?.topics);
+    const hasCompanyChanged = company !== user?.company;
+    const hasPositionChanged = position !== user?.position;
     
     setHasChanges(
       hasNameChanged || 
       hasBioChanged || 
       hasTopicsChanged || 
-      hasSocialNetworksChanged
+      hasSocialNetworksChanged ||
+      hasCompanyChanged ||
+      hasPositionChanged
     );
-  }, [displayName, bio, selectedTopics, socialLinks, user]);
+  }, [fullName, bio, selectedTopics, socialLinks, user, company, position]);
 
   const handleSave = async () => {
     try {
+      console.log("Saving social links:", socialLinks);
+      
       await updateProfile({
-        displayName,
+        full_name: fullName,
         bio,
         topics: selectedTopics,
         socialNetworks: socialLinks.map(({ id, username, connected }) => ({
@@ -117,9 +128,15 @@ export default function Profile() {
           username,
           connected,
         })),
+        company,
+        position
       });
+      
+      // Confirm the changes were saved
+      console.log("Profile updated, changes saved");
       setHasChanges(false);
     } catch (error) {
+      console.error("Save error:", error);
       Alert.alert('Error', 'Failed to save profile changes');
     }
   };
@@ -146,11 +163,14 @@ export default function Profile() {
   };
 
   const handleToggleConnection = (id: string) => {
-    setSocialLinks(prev =>
-      prev.map(link =>
+    console.log("Toggle connection for:", id);
+    setSocialLinks(prev => {
+      const updated = prev.map(link =>
         link.id === id ? { ...link, connected: !link.connected } : link
-      )
-    );
+      );
+      console.log("Updated social links:", updated);
+      return updated;
+    });
   };
 
   const handleAddPaymentMethod = () => {
@@ -249,6 +269,196 @@ export default function Profile() {
     </TouchableOpacity>
   );
 
+  const initializeProfile = async () => {
+    if (!user) return;
+    
+    try {
+      // Check if social_networks is empty
+      const { data } = await supabase
+        .from('profiles')
+        .select('social_networks')
+        .eq('id', user.id)
+        .single();
+        
+      // If empty or null, initialize with defaults
+      if (!data.social_networks || (Array.isArray(data.social_networks) && data.social_networks.length === 0)) {
+        const defaultNetworks = [
+          { id: 'bluesky', username: '', connected: false },
+          { id: 'instagram', username: '', connected: false },
+          { id: 'linkedin', username: '', connected: false },
+          { id: 'github', username: '', connected: false }
+        ];
+        
+        await supabase
+          .from('profiles')
+          .update({ social_networks: defaultNetworks })
+          .eq('id', user.id);
+          
+        // Update local state
+        const updatedUser = {...user, socialNetworks: defaultNetworks};
+        // Update your auth store with the new user object
+      }
+    } catch (error) {
+      console.error("Error initializing profile:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user && user.id) {
+      initializeProfile();
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    // Fetch fresh data from Supabase when the profile screen mounts
+    const fetchFreshProfileData = async () => {
+      try {
+        setIsLoading(true);
+        await useAuthStore.getState().reloadUserProfile();
+      } catch (error) {
+        console.error('Error loading fresh profile data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchFreshProfileData();
+  }, []); // Empty dependency array means this runs once when component mounts
+
+  useEffect(() => {
+    if (user) {
+      console.log('Current user data source check:');
+      console.log('- Local user object:', user);
+      
+      // Check what's in the database
+      const checkDatabase = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          console.log('- Database profile:', data);
+          console.log('- Bio comparison:', {
+            'local': user.bio,
+            'database': data?.bio,
+            'matches': user.bio === data?.bio
+          });
+        } catch (error) {
+          console.error('Error checking database:', error);
+        }
+      };
+      
+      checkDatabase();
+    }
+  }, [user]);
+
+  // Add onRefresh callback
+  const onRefresh = useCallback(async () => {
+    console.log('[PROFILE] Pull-to-refresh triggered');
+    setRefreshing(true);
+    
+    try {
+      // Get current user ID
+      const userId = user?.id;
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Fetch fresh profile data
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+        
+      if (error) throw error;
+      
+      console.log('[PROFILE] Fresh profile data received');
+      
+      // Update auth store with fresh data
+      useAuthStore.getState().updateUser({
+        ...user!,
+        full_name: profileData.full_name,
+        bio: profileData.bio,
+        company: profileData.company,
+        position: profileData.position,
+        topics: profileData.topics || [],
+        socialNetworks: profileData.social_networks || [],
+        avatar_url: profileData.avatar_url,
+      });
+      
+      // Update local component state
+      setFullName(profileData.full_name || '');
+      setBio(profileData.bio || '');
+      setCompany(profileData.company || '');
+      setPosition(profileData.position || '');
+      setSelectedTopics(profileData.topics || []);
+      
+      // Update social links
+      if (profileData.social_networks && profileData.social_networks.length > 0) {
+        const updatedSocialLinks = socialLinks.map(link => {
+          const networkData = profileData.social_networks.find(n => n.id === link.id);
+          if (networkData) {
+            return {
+              ...link,
+              username: networkData.username || '',
+              connected: networkData.connected || false,
+            };
+          }
+          return link;
+        });
+        setSocialLinks(updatedSocialLinks);
+      }
+      
+      console.log('[PROFILE] Profile refreshed successfully');
+      Alert.alert('Profile Updated', 'Profile data has been refreshed.');
+    } catch (error) {
+      console.error('[PROFILE] Error refreshing profile:', error);
+      Alert.alert('Refresh Failed', 'Could not refresh profile data.');
+    } finally {
+      setRefreshing(false);
+    }
+  }, [user?.id]);
+  
+  // Update existing effect for initial profile load
+  useEffect(() => {
+    const loadProfileData = async () => {
+      if (!user) return;
+      
+      setLoadingProfile(true);
+      try {
+        // Fetch latest profile data
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        
+        // Update auth store
+        useAuthStore.getState().updateUser({
+          ...user,
+          full_name: data.full_name,
+          bio: data.bio,
+          company: data.company,
+          position: data.position,
+          topics: data.topics || [],
+          socialNetworks: data.social_networks || [],
+          avatar_url: data.avatar_url,
+        });
+      } catch (error) {
+        console.error('[PROFILE] Error loading profile:', error);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+    
+    loadProfileData();
+  }, []);
+
   return (
     <View style={[styles.container]}>
       <Stack.Screen 
@@ -262,20 +472,44 @@ export default function Profile() {
           headerTitleStyle: {
             fontSize: 17,
             fontFamily: 'Inter-SemiBold',
-          }
+          },
+          // Add a loading indicator in the header when refreshing
+          headerRight: () => loadingProfile ? (
+            <ActivityIndicator color="#007AFF" style={{ marginRight: 15 }} />
+          ) : null
         }}
       />
       
       <ScrollView 
         style={styles.scrollContainer}
         contentContainerStyle={{ paddingBottom: insets.bottom }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#007AFF']}
+            tintColor={'#007AFF'}
+            title={'Refreshing profile...'}  // iOS only
+            titleColor={'#007AFF'}           // iOS only
+            progressBackgroundColor={'#ffffff'}
+            progressViewOffset={20}
+          />
+        }
       >
+        {/* Show loading overlay when first loading */}
+        {loadingProfile && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <Text style={styles.loadingText}>Loading profile...</Text>
+          </View>
+        )}
+        
         <Animated.View entering={FadeIn.duration(400)}>
           <View style={styles.profileHeader}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatarWrapper}>
                 <Image
-                  source={{ uri: 'https://ronan-oleary.com/assets/ro-bw.d434f415.png' }}
+                  source={{ uri: user?.avatar_url || 'https://via.placeholder.com/150' }}
                   style={styles.avatar}
                 />
                 <TouchableOpacity style={styles.avatarOverlay}>
@@ -284,7 +518,6 @@ export default function Profile() {
               </View>
             </View>
           </View>
-
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Profile Information</Text>
@@ -296,12 +529,12 @@ export default function Profile() {
               </View>
             </View>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Display Name</Text>
+              <Text style={styles.label}>Full Name</Text>
               <TextInput
                 style={styles.input}
-                value={displayName}
-                onChangeText={setDisplayName}
-                placeholder="Enter your display name"
+                value={fullName}
+                onChangeText={setFullName}
+                placeholder="Enter your full name"
               />
             </View>
             <View style={styles.inputGroup}>
@@ -313,6 +546,28 @@ export default function Profile() {
                 placeholder="Tell us about yourself"
                 multiline
                 numberOfLines={4}
+              />
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Professional Info</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Company</Text>
+              <TextInput
+                style={styles.input}
+                value={company}
+                onChangeText={setCompany}
+                placeholder="Enter your company"
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Position</Text>
+              <TextInput
+                style={styles.input}
+                value={position}
+                onChangeText={setPosition}
+                placeholder="Enter your position"
               />
             </View>
           </View>
@@ -336,7 +591,6 @@ export default function Profile() {
               </TouchableOpacity>
             </View>
           </View>
-
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Your Interests</Text>
@@ -366,7 +620,10 @@ export default function Profile() {
             <Text style={styles.sectionDescription}>
               Connect your social media accounts to share your events and activities
             </Text>
-
+            
+            
+            
+            {/* Original links mapping */}
             {socialLinks.map(link => (
               <View key={link.id} style={styles.socialLink}>
                 <View style={styles.socialLinkHeader}>
@@ -395,6 +652,8 @@ export default function Profile() {
                 )}
               </View>
             ))}
+            
+            
           </View>
 
           <View style={styles.section}>
@@ -901,5 +1160,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     gap: 8,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#007AFF',
   },
 });

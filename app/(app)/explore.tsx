@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TextInput, Image, Pressable } from 'react-native';
 import { Search, Calendar, MapPin, Heart } from 'lucide-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { useFavoritesStore, FavoriteItem } from '@/stores/useFavoritesStore';
+import { useFavoritesStore, FavoriteItem } from '@/stores/favoritesStore';
 import { useRouter } from 'expo-router';
 
 const FEATURED_EVENTS: FavoriteItem[] = [

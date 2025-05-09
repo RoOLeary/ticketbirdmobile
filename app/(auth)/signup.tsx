@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, StatusBar, Linking, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/stores/authStore';
-import { usePreferencesStore } from '@/stores/usePreferencesStore';
-import { Mail, Lock, ArrowRight, AlertCircle, Github, Linkedin } from 'lucide-react-native';
-import Animated, { FadeIn, SlideInUp, FadeInDown } from 'react-native-reanimated';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, StatusBar, Linking, ActivityIndicator, ScrollView } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useAuthStore, SignupOrigin } from '@/stores/authStore';
+import { Mail, Lock, User, ArrowRight, AlertCircle, Github, Linkedin } from 'lucide-react-native';
+import Animated, { FadeIn, ZoomIn, FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { TicketbirdLogo } from '../components/TicketbirdLogo';
 import { Svg, Path } from 'react-native-svg';
@@ -40,56 +39,94 @@ const GoogleLogo = () => (
   </View>
 );
 
-export default function Login() {
+export default function SignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  
   const router = useRouter();
-  const { login, isLoading: authIsLoading, error, signInWithProvider } = useAuthStore();
-  const hasCompletedOnboarding = usePreferencesStore((state) => state.hasCompletedOnboarding);
-
-  // Reset error when inputs change
+  const params = useLocalSearchParams();
+  const { signup, signInWithProvider, isLoading, error } = useAuthStore();
+  
+  // Get the signup origin from route params or default to mobile_app
+  const origin = (params.origin as SignupOrigin) || 'mobile_app';
+  const referrer = params.referrer as string;
+  
+  // Clear errors when inputs change
   useEffect(() => {
     if (error) {
-      // Clear any existing error when user types
+      // Clear any auth store errors when user types
       useAuthStore.setState({ error: null });
     }
-  }, [email, password, error]);
-
-  const handleLogin = async () => {
-    console.log('[UI:Login] Login button pressed with:', { email });
+    if (validationError) {
+      setValidationError(null);
+    }
+  }, [email, password, confirmPassword, username, error, validationError]);
+  
+  const validateForm = () => {
+    if (!username) {
+      setValidationError('Username is required');
+      return false;
+    }
     
-    if (!email || !password) {
-      console.warn('[UI:Login] Email or password is missing');
+    if (!email) {
+      setValidationError('Email address is required');
+      return false;
+    }
+    
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setValidationError('Please enter a valid email address');
+      return false;
+    }
+    
+    if (!password) {
+      setValidationError('Password is required');
+      return false;
+    }
+    
+    if (password.length < 8) {
+      setValidationError('Password must be at least 8 characters');
+      return false;
+    }
+    
+    if (password !== confirmPassword) {
+      setValidationError('Passwords do not match');
+      return false;
+    }
+    
+    return true;
+  };
+  
+  const handleSignup = async () => {
+    console.log('[UI:Signup] Signup button pressed with:', { email, username, origin, referrer });
+    
+    if (!validateForm()) {
       return;
     }
     
     try {
       setIsSubmitting(true);
-      console.log('[UI:Login] Calling authStore.login()');
-      const success = await login(email, password);
+      console.log('[UI:Signup] Calling authStore.signup()');
+      await signup(email, password, username, origin, referrer);
+      console.log('[UI:Signup] Signup completed, navigating to login');
       
-      if (success) {
-        console.log('[UI:Login] Login successful, forcing navigation to profile');
-        // Force direct navigation to profile page
-        router.replace('/profile');
-      } else {
-        console.log('[UI:Login] Login failed, staying on login page');
-        // Error is already set in the store
-      }
+      // Navigate to login with success message
+      router.push({
+        pathname: '/login',
+        params: { message: 'Account created! Please check your email to confirm your account.' }
+      } as any);
     } catch (e) {
-      console.error('[UI:Login] Unhandled error during login:', e);
+      console.error('[UI:Signup] Unhandled error during signup:', e);
     } finally {
       setIsSubmitting(false);
     }
   };
   
-  const handleSignup = () => {
-    router.push('/signup');
-  };
-  
-  const handleSocialSignIn = (provider: 'google' | 'linkedin' | 'github') => {
-    console.log(`[UI:Login] Social sign-in requested with ${provider}`);
+  const handleSocialSignup = (provider: 'google' | 'linkedin' | 'github') => {
+    console.log(`[UI:Signup] Social signup requested with ${provider}`);
     signInWithProvider(provider);
   };
 
@@ -108,7 +145,10 @@ export default function Login() {
       <View style={styles.overlay} />
       
       {/* Content container */}
-      <View style={styles.contentContainer}>
+      <ScrollView 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.centerContainer}>
           {/* Header section with branding */}
           <Animated.View 
@@ -118,7 +158,7 @@ export default function Login() {
             <View style={{flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <TicketbirdLogo size={48} color="#fff" /><Text style={styles.title}>FlutterPass</Text>
             </View>
-            <Text style={styles.subtitle}>Your gateway to incredible events</Text>
+            <Text style={styles.subtitle}>Create your account</Text>
           </Animated.View>
 
           {/* Form container with glass effect */}
@@ -126,12 +166,26 @@ export default function Login() {
             entering={FadeInDown.duration(400).springify().damping(12)}
             style={styles.formContainer}
           >
-            {error && (
+            {(error || validationError) && (
               <View style={styles.errorContainer}>
                 <AlertCircle size={20} color="#FF3B30" />
-                <Text style={styles.error}>{error}</Text>
+                <Text style={styles.error}>{error || validationError}</Text>
               </View>
             )}
+
+            <View style={styles.inputContainer}>
+              <User size={20} color="#666" />
+              <TextInput
+                style={styles.input}
+                placeholder="Username"
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholderTextColor="#999"
+                returnKeyType="next"
+              />
+            </View>
 
             <View style={styles.inputContainer}>
               <Mail size={20} color="#666" />
@@ -157,23 +211,31 @@ export default function Login() {
                 onChangeText={setPassword}
                 secureTextEntry
                 placeholderTextColor="#999"
-                returnKeyType="done"
-                autoComplete="password"
-                onSubmitEditing={handleLogin}
+                returnKeyType="next"
               />
             </View>
-
-            <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-            </TouchableOpacity>
+            
+            <View style={styles.inputContainer}>
+              <Lock size={20} color="#666" />
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                placeholderTextColor="#999"
+                returnKeyType="done"
+                onSubmitEditing={handleSignup}
+              />
+            </View>
 
             <TouchableOpacity 
               style={[
                 styles.buttonContainer,
-                (!email || !password || isSubmitting) && styles.buttonDisabled
+                (!email || !password || !username || !confirmPassword || isSubmitting) && styles.buttonDisabled
               ]} 
-              onPress={handleLogin}
-              disabled={!email || !password || isSubmitting}
+              onPress={handleSignup}
+              disabled={!email || !password || !username || !confirmPassword || isSubmitting}
             >
               <LinearGradient
                 colors={['#333', '#000']}
@@ -185,7 +247,7 @@ export default function Login() {
                   <ActivityIndicator color="#fff" size="small" />
                 ) : (
                   <>
-                    <Text style={styles.buttonText}>Sign in</Text>
+                    <Text style={styles.buttonText}>Create Account</Text>
                     <ArrowRight size={20} color="#fff" />
                   </>
                 )}
@@ -196,28 +258,28 @@ export default function Login() {
             <View style={styles.socialContainer}>
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>or continue with</Text>
+                <Text style={styles.dividerText}>or sign up with</Text>
                 <View style={styles.dividerLine} />
               </View>
               
               <View style={styles.socialButtonsRow}>
                 <TouchableOpacity 
                   style={styles.socialButton}
-                  onPress={() => handleSocialSignIn('google')}
+                  onPress={() => handleSocialSignup('google')}
                 >
                   <GoogleLogo />
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
                   style={styles.socialButton}
-                  onPress={() => handleSocialSignIn('linkedin')}
+                  onPress={() => handleSocialSignup('linkedin')}
                 >
                   <Linkedin size={22} color="#0A66C2" />
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
                   style={styles.socialButton}
-                  onPress={() => handleSocialSignIn('github')}
+                  onPress={() => handleSocialSignup('github')}
                 >
                   <Github size={22} color="#333" />
                 </TouchableOpacity>
@@ -225,9 +287,9 @@ export default function Login() {
             </View>
 
             <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account?</Text>
-              <TouchableOpacity onPress={handleSignup}>
-                <Text style={styles.signUpText}>Sign up</Text>
+              <Text style={styles.footerText}>Already have an account?</Text>
+              <TouchableOpacity onPress={() => router.push('/login')}>
+                <Text style={styles.loginText}>Sign In</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
@@ -243,7 +305,7 @@ export default function Login() {
             </Text>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -266,7 +328,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   contentContainer: {
-    flex: 1,
+    minHeight: '100%',
     justifyContent: 'center',
     padding: 24,
   },
@@ -277,7 +339,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
   },
   title: {
     fontSize: 42,
@@ -350,15 +412,6 @@ const styles = StyleSheet.create({
     color: '#333',
     height: '100%',
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
-    color: '#000',
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
   buttonContainer: {
     height: 54,
     borderRadius: 14,
@@ -371,6 +424,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
+    marginTop: 8,
   },
   button: {
     height: '100%',
@@ -429,11 +483,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  socialIcon: {
-    width: 24,
-    height: 24,
-    resizeMode: 'contain',
-  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -446,7 +495,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     opacity: 0.9,
   },
-  signUpText: {
+  loginText: {
     color: '#000',
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',

@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, Linking } from 'react-native';
 import { Drawer } from 'expo-router/drawer';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
+import { useOnboardingStore } from '@/stores/onboardingStore';
 import { Home, Calendar, Ticket, Heart, User as Profile, LogOut, CircleHelp as HelpCircle } from 'lucide-react-native';
 import { AuthProvider } from '@/lib/auth';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
@@ -20,7 +21,10 @@ type AppRoute =
   | '/tickets'
   | '/settings'
   | '/support'
-  | '/login';
+  | '/login'
+  | '/signup'
+  | '/onboarding'
+  | '/profile';
 
 const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
   const router = useRouter();
@@ -54,8 +58,8 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
         >
           <Text style={styles.creditText}>by busylittlepixels</Text>
         </TouchableOpacity>
-        {user?.displayName && (
-          <Text style={styles.userEmail}>{user.displayName}</Text>
+        {user?.full_name && (
+          <Text style={styles.userEmail}>{user.full_name}</Text>
         )}
       </View>
       
@@ -123,6 +127,107 @@ const CustomDrawerContent = ({ navigation }: DrawerContentComponentProps) => {
     </View>
   );
 };
+
+function RootLayoutNav() {
+  const { user } = useAuthStore();
+  const { hasCompletedOnboarding } = useOnboardingStore();
+  const segments = useSegments();
+  const router = useRouter();
+  const navigationState = useRootNavigationState();
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [lastNavigation, setLastNavigation] = useState<{
+    timestamp: number;
+    destination: string;
+  } | null>(null);
+
+  useEffect(() => {
+    // Don't attempt navigation if the navigation state isn't ready
+    // or if we're already in the middle of a navigation
+    if (!navigationState?.key || isNavigating) {
+      console.log('[NAVIGATION] Skipping navigation:', {
+        reason: !navigationState?.key ? 'navigation state not ready' : 'already navigating',
+        isNavigating,
+        navigationKey: navigationState?.key
+      });
+      return;
+    }
+
+    const inAuthGroup = segments[0] === '(auth)';
+    const inAppGroup = segments[0] === '(app)';
+    const currentPath = segments.join('/');
+    
+    console.log('[NAVIGATION] Evaluating navigation:', { 
+      user: !!user, 
+      userId: user?.id,
+      hasCompletedOnboarding,
+      currentSegment: segments[0],
+      currentPath,
+      inAuthGroup,
+      inAppGroup,
+      lastNavigation: lastNavigation ? 
+        `${lastNavigation.destination} (${Date.now() - lastNavigation.timestamp}ms ago)` : 'none'
+    });
+
+    const handleNavigation = async () => {
+      // Set navigating flag to prevent multiple navigation attempts
+      setIsNavigating(true);
+      let destination = '';
+      
+      try {
+        if (!user) {
+          // If not logged in, redirect to login unless already in auth group
+          if (!inAuthGroup) {
+            destination = '/login';
+            console.log('[NAVIGATION] Redirecting to login (no user)');
+            await router.replace('/login' as any);
+          }
+        } else if (user && !hasCompletedOnboarding) {
+          // If logged in but hasn't completed onboarding
+          destination = '/onboarding';
+          console.log('[NAVIGATION] Redirecting to onboarding');
+          await router.replace('/onboarding' as any);
+        } else if (user && hasCompletedOnboarding && inAuthGroup) {
+          // If logged in and completed onboarding but still in auth group
+          destination = '/profile';
+          console.log('[NAVIGATION] Redirecting to profile (auth complete)');
+          await router.replace('/profile' as any);
+        }
+        
+        if (destination) {
+          setLastNavigation({
+            timestamp: Date.now(),
+            destination
+          });
+        }
+      } catch (error) {
+        console.error('[NAVIGATION] Navigation error:', error);
+      } finally {
+        // Reset navigating flag after navigation completes or fails
+        // with a slightly longer delay to ensure router has time to settle
+        setTimeout(() => {
+          console.log('[NAVIGATION] Resetting navigation flag');
+          setIsNavigating(false);
+        }, 500);
+      }
+    };
+    
+    // Use setTimeout to ensure we're not blocking the main thread
+    // and to allow previous navigations to complete
+    const timeoutId = setTimeout(handleNavigation, 200);
+    
+    // Clean up timeout if component unmounts or dependencies change
+    return () => clearTimeout(timeoutId);
+  }, [user, hasCompletedOnboarding, segments, navigationState?.key, isNavigating, lastNavigation]);
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)/login" />
+      <Stack.Screen name="(auth)/signup" />
+      <Stack.Screen name="(auth)/onboarding" />
+      <Stack.Screen name="(app)/profile" />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   useEffect(() => {

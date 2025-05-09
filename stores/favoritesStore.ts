@@ -8,13 +8,14 @@ export interface FavoriteItem {
   type: 'story' | 'post' | 'event' | 'topic';  // Different types of content that can be favorited
   title: string;
   image?: string;
+  location?: string;
   author?: {
     username: string;
     avatar: string;
   };
   date?: string;
   category?: string;
-  addedAt: string;  // Timestamp when item was added to favorites
+  addedAt?: Date;  // Timestamp when item was added to favorites
 }
 
 // State and actions available in the favorites store
